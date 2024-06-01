@@ -1,1 +1,1 @@
-Alpine Images fueling the CLAD geocoder cloud.
+Alpine Images the CLAD geocoder cloud.
