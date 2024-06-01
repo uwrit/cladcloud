@@ -1,1 +1,1 @@
-Alpine Images the CLAD geocoder cloud.
+Alpine Images for the CLAD geocoder cloud.

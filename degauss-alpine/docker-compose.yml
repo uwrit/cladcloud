@@ -1,0 +1,7 @@
+version: '3.7'
+services:
+    degaussalpine:
+        build:
+            context: ./degauss-geocoder-api
+        ports:
+            - "50008:5000"
