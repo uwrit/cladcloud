@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+    nominatim:
+        container_name: nominatim
+        image: mediagis/nominatim:4.4
+        ports:
+            - "50003:8080"
+        environment:
+            # see https://github.com/mediagis/nominatim-docker/tree/master/4.3#configuration for more options
+            PBF_URL: https://download.geofabrik.de/north-america-latest.osm.pbf
+            NOMINATIM_PASSWORD: notongitlab
+        volumes:
+            - nominatim-data:/var/lib/postgresql/14/main
+        shm_size: 64gb
+        networks:
+            uw_postgis_net:
+                aliases:
+                   - nominatimapi
+        deploy:
+          placement:
+        # set node labels using docker node update --label-add key=value <NODE ID> from swarm manager
+            constraints: [node.hostname == swarm02.rit.uw.edu]
+
+
+networks:
+  uw_postgis_net:
+    driver: overlay
+    external: true
+    driver_opts:
+      encrypted: "true"
+
+
+volumes:
+    nominatim-data:
