@@ -1,4 +1,4 @@
-FROM rhub/r-minimal:4.3.0
+FROM rhub/r-minimal:4.5.0
 
 # DeGAUSS container metadata
 ENV degauss_name="geocoder"
@@ -62,8 +62,7 @@ ADD https://geomarker.s3.amazonaws.com/geocoder_2021.db /opt/geocoder.db
 
 ## api customizations
 
-COPY requirements.txt ./
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN apk add py3-flask
 
 COPY __init__.py ./
 COPY manage.py ./
