@@ -146,10 +146,19 @@ Indexing started after about 2 hours of processing:
 Once the Indexing hits, that's when all CPU's will be utilized.
 
 
+Using the 'shm_size' is important for proper materialization of the database file when you adjust to bigger RAM circumstances. 
+Assumes an at least 128GB RAM machine:  
+```        shm_size: 64gb
 
-## Additional possible chnages
 
 
-It appears you can extend this by adding Tiger data
-https://nominatim.org/release-docs/4.4/customize/Tiger/
 
+## Ubuntu 'Noble' Update
+Original Ubuntu Jammy vanilla install runs PHP 8.1 which has high CVE's so must be dumped.
+
+Must update to Ubuntu 'Noble' to get php 8.3 by default. 
+
+CVE Check on a customized build in the nominatim-php83 folder only brings up lows and mediums.
+- on Ubuntu Noble
+- Postgres 16 Update
+- PHP 8.3 update
