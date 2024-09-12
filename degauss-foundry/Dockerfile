@@ -27,7 +27,6 @@ RUN apk add \
     musl-dev \
     python3 \
     py3-pip \
-    py3-setuptools \
     vim \
     linux-headers
 
@@ -76,4 +75,4 @@ ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 USER 5001
 WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
 
-ENTRYPOINT entrypoint -c "/app/entrypointCSV.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv"
+ENTRYPOINT entrypoint -c "/app/entrypointCSV.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all"
