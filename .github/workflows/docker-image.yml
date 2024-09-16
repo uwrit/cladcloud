@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the degauss-geocoder-api image
-      run: docker build degauss-alpine/degauss-geocoder-api --file Dockerfile --tag degauss-geocoder-api:$(date +%s)
+      run: docker build degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:$(date +%s)
 
   build-degauss-foundry:
 
@@ -26,7 +26,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the degauss-foundry image
-      run: docker build degauss-foundry --file Dockerfile --tag degauss-foundry:$(date +%s)
+      run: docker build degauss-foundry --tag degauss-foundry:$(date +%s)
 
   build-nominatim:
 
@@ -35,7 +35,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the nominatim image
-      run: docker build nominatim-docker/nominatim-php83 --file Dockerfile --tag nominatim:$(date +%s)
+      run: docker build nominatim-docker/nominatim-php83 --tag nominatim:$(date +%s)
 
   build-postgis:
 
@@ -44,4 +44,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the postgis image
-      run: docker build postgis-docker-alpine-db/src/alpinedb --file Dockerfile --tag postgis:$(date +%s)
+      run: docker build postgis-docker-alpine-db/src/alpinedb --tag postgis:$(date +%s)
