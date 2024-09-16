@@ -1,0 +1,26 @@
+name: Build Docker Images
+
+on:
+  push:
+    branches:
+    - "main"
+  pull_request:
+    branches:
+    - "main"
+
+jobs:
+
+  build:
+
+    runs-on: debian-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the degauss-geocoder-api image
+      run: docker build degauss-alpine/degauss-geocoder-api --file Dockerfile --tag degauss-geocoder-api:$(date +%s)
+    - name: Build the degauss-foundry image
+      run: docker build degauss-foundry --file Dockerfile --tag degauss-foundry:$(date +%s)
+    - name: Build the nominatim image
+      run: docker build nominatim-docker/nominatim-php83 --file Dockerfile --tag nominatim:$(date +%s)
+    - name: Build the postgis image
+      run: docker build postgis-docker-alpine-db/src/alpinedb --file Dockerfile --tag postgis:$(date +%s)
