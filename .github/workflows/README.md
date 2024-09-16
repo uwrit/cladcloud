@@ -7,6 +7,8 @@ https://access.redhat.com/solutions/7001773
 ```
 group add docker
 usermod -aG docker github
+systemctl --user enable --now dbus
+loginctl enable-linger 1000
 ```
 
 Not only do we need to follow the instructions to install the runner:
