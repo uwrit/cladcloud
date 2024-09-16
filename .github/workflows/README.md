@@ -11,6 +11,14 @@ systemctl --user enable --now dbus
 loginctl enable-linger 1000
 ```
 
+Redirect /tmp on root volume to /home/tmp on large data volume:
+```
+mkdir /home/tmp
+echo "/home/tmp	/tmp	none	defaults,bind	1 2" >> /etc/fstab
+rm -rf /tmp/*
+reboot
+```
+
 Not only do we need to follow the instructions to install the runner:
 https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/configuring-the-self-hosted-runner-application-as-a-service
 
