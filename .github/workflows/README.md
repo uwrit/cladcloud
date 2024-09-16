@@ -1,6 +1,6 @@
 On a new action runner:
 - install linux
-- install docker
+- install actual docker (not podman which is default on RHEL) https://medium.com/@blackhorseya/switching-from-podman-to-docker-on-rhel-9-bd5e91f9f577
 
 Add docker group and add the user to it:
 https://access.redhat.com/solutions/7001773
@@ -17,6 +17,17 @@ mkdir /home/tmp
 echo "/home/tmp	/tmp	none	defaults,bind	1 2" >> /etc/fstab
 rm -rf /tmp/*
 reboot
+```
+
+And redirect docker from /var/lib/docker to /home/docker:
+```
+service docker stop
+cd /var/lib
+mv docker /home/docker
+ln -s /home/docker .
+sed -i 's|dockerd|dockerd --data-root /home/docker|g' /lib/systemd/system/docker.service
+systemctl daemon-reload
+service docker start
 ```
 
 Not only do we need to follow the instructions to install the runner:
