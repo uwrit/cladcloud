@@ -10,8 +10,7 @@ FROM postgis/postgis:16-3.4-alpine
 RUN apk add wget unzip postgis libintl
 
 # Make data dir
-RUN mkdir -p /gisdata \
-    && chmod 777 -R /gisdata
+RUN mkdir -p -m 777 /gisdata
 
 # Copy nation an state scripts
 COPY ./load_data.sh /docker-entrypoint-initdb.d/
