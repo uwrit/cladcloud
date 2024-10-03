@@ -9,7 +9,7 @@ on:
     - "main"
 
 env:
-  BUILD_NUM: ${{ $(date +%Y%m%d%H%M%S) }}
+  BUILD_NUM: ${{ (date +%Y%m%d%H%M%S) }}
 
 jobs:
 
