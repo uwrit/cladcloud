@@ -18,6 +18,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the degauss-geocoder-api image
       run: docker build degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:$(date +%Y%m%d%H%M%S)
+    - name: Run CVE check
       run: trivy image degauss-geocoder-api:$(date +%Y%m%d%H%M%S)
 
   build-degauss-foundry:
@@ -28,6 +29,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the degauss-foundry image
       run: docker build degauss-foundry --tag degauss-foundry:$(date +%Y%m%d%H%M%S)
+    - name: Run CVE check
       run: trivy image degauss-foundry:$(date +%Y%m%d%H%M%S)
 
   build-nominatim:
@@ -38,6 +40,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the nominatim image
       run: docker build nominatim-docker/nominatim-php83 --tag nominatim:$(date +%Y%m%d%H%M%S)
+    - name: Run CVE check
       run: trivy image nominatim:$(date +%Y%m%d%H%M%S)
 
   build-postgis:
@@ -48,4 +51,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the postgis image
       run: docker build postgis-docker-alpine-db/src/alpinedb --tag postgis:$(date +%Y%m%d%H%M%S)
+    - name: Run CVE check
       run: trivy image postgis:$(date +%Y%m%d%H%M%S)
