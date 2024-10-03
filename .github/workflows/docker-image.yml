@@ -10,9 +10,16 @@ on:
 
 jobs:
 
-  build-degauss-api:
-
+  clear-cache:
     runs-on: self-hosted
+
+    steps:
+    - name: Clear docker cache
+      run: docker buildx prune
+
+  build-degauss-api:
+    runs-on: self-hosted
+    needs: clear-cache
 
     steps:
     - uses: actions/checkout@v4
@@ -22,8 +29,8 @@ jobs:
       run: trivy image degauss-geocoder-api:latest
 
   build-degauss-foundry:
-
     runs-on: self-hosted
+    needs: clear-cache
 
     steps:
     - uses: actions/checkout@v4
@@ -33,8 +40,8 @@ jobs:
       run: trivy image degauss-foundry:latest
 
   build-nominatim:
-
     runs-on: self-hosted
+    needs: clear-cache
 
     steps:
     - uses: actions/checkout@v4
@@ -44,8 +51,8 @@ jobs:
       run: trivy image nominatim:latest
 
   build-postgis:
-
     runs-on: self-hosted
+    needs: clear-cache
 
     steps:
     - uses: actions/checkout@v4
