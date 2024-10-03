@@ -9,7 +9,7 @@ on:
     - "main"
 
 env:
-  BUILD_NUM: ${{ (date +%Y%m%d%H%M%S) }}
+  BUILD_NUM: $(date +%Y%m%d%H%M%S)
 
 jobs:
 
@@ -19,8 +19,8 @@ jobs:
     steps:
     - name: Clear docker cache
       run: docker system prune -af --volumes
-    - name: print BUILD_NUM
-      run: echo $BUILD_NUM
+    - name: print env
+      run: env
 
   build-degauss-api:
     runs-on: self-hosted
@@ -28,6 +28,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: print env
+      run: env
     - name: Build the degauss-geocoder-api image
       run: docker build --load degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:$BUILD_NUM
     - name: Run Trivy CVE vulnerability scanner
@@ -46,6 +48,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: print env
+      run: env
     - name: Build the degauss-foundry image
       run: docker build degauss-foundry --tag degauss-foundry:$BUILD_NUM
     - name: Run Trivy CVE vulnerability scanner
@@ -64,6 +68,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: print env
+      run: env
     - name: Build the nominatim image
       run: docker build nominatim-docker/nominatim-php83 --tag nominatim:$BUILD_NUM
     - name: Run Trivy CVE vulnerability scanner
@@ -82,6 +88,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: print env
+      run: env
     - name: Build the postgis image
       run: docker build postgis-docker-alpine-db/src/alpinedb --tag postgis:$BUILD_NUM
     - name: Run Trivy CVE vulnerability scanner
