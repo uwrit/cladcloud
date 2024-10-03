@@ -28,6 +28,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: set BUILD_NUM first
+      run: echo "BUILD_NUM=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
     - name: print env
       run: env
     - name: Build the degauss-geocoder-api image
