@@ -18,7 +18,7 @@ jobs:
 
     steps:
     - name: Clear docker cache
-      run: docker buildx prune
+      run: docker buildx prune -af --volumes
 
   build-degauss-api:
     runs-on: self-hosted
