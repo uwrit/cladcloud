@@ -1,4 +1,4 @@
-name: Build Docker Images
+rtname: Build Docker Images
 
 on:
   push:
@@ -19,8 +19,8 @@ jobs:
     steps:
     - name: Clear docker cache
       run: docker system prune -af --volumes
-    - name: print env
-      run: env
+    - name: export BUILD_NUM
+      run: date +%Y%m%d%H%M%S > ~/BUILD_NUM
 
   build-degauss-api:
     runs-on: self-hosted
@@ -28,8 +28,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: set BUILD_NUM first
-      run: echo "BUILD_NUM=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+    - name: import BUILD_NUM
+      run: echo "BUILD_NUM=$(cat ~/BUILD_NUM)" >> $GITHUB_ENV
     - name: print env
       run: env
     - name: Build the degauss-geocoder-api image
@@ -37,7 +37,7 @@ jobs:
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.20.0
       with:
-        image-ref: 'degauss-geocoder-api:$BUILD_NUM'
+        image-ref: degauss-geocoder-api:$BUILD_NUM
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
