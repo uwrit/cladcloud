@@ -8,6 +8,9 @@ on:
     branches:
     - "main"
 
+env:
+  BUILD_NUM: $(date +%Y%m%d%H%M%S)
+
 jobs:
 
   clear-cache:
@@ -24,9 +27,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the degauss-geocoder-api image
-      run: docker build degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:$(date +%Y%m%d%H%M%S)
-    - name: Run CVE check
-      run: trivy image degauss-geocoder-api:latest
+      run: docker build --load degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:$BUILD_NUM
+    - name: Run Trivy CVE vulnerability scanner
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: 'degauss-geocoder-api:$BUILD_NUM'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
 
   build-degauss-foundry:
     runs-on: self-hosted
@@ -35,9 +45,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the degauss-foundry image
-      run: docker build degauss-foundry --tag degauss-foundry:$(date +%Y%m%d%H%M%S)
-    - name: Run CVE check
-      run: trivy image degauss-foundry:latest
+      run: docker build degauss-foundry --tag degauss-foundry:$BUILD_NUM
+    - name: Run Trivy CVE vulnerability scanner
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: 'degauss-foundry:$BUILD_NUM'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
 
   build-nominatim:
     runs-on: self-hosted
@@ -46,9 +63,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the nominatim image
-      run: docker build nominatim-docker/nominatim-php83 --tag nominatim:$(date +%Y%m%d%H%M%S)
-    - name: Run CVE check
-      run: trivy image nominatim:latest
+      run: docker build nominatim-docker/nominatim-php83 --tag nominatim:$BUILD_NUM
+    - name: Run Trivy CVE vulnerability scanner
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: 'nominatim:$BUILD_NUM'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
 
   build-postgis:
     runs-on: self-hosted
@@ -57,6 +81,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the postgis image
-      run: docker build postgis-docker-alpine-db/src/alpinedb --tag postgis:$(date +%Y%m%d%H%M%S)
-    - name: Run CVE check
-      run: trivy image postgis:latest
+      run: docker build postgis-docker-alpine-db/src/alpinedb --tag postgis:$BUILD_NUM
+    - name: Run Trivy CVE vulnerability scanner
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: 'postgis:$BUILD_NUM'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
