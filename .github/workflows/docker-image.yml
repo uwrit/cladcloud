@@ -9,7 +9,7 @@ on:
     - "main"
 
 env:
-  BUILD_NUM: $(date +%Y%m%d%H%M%S)
+  BUILD_NUM: ""
 
 jobs:
 
@@ -19,6 +19,10 @@ jobs:
     steps:
     - name: Clear docker cache
       run: docker system prune -af --volumes
+    - name: set BUILD_NUM
+      run: echo "BUILD_NUM=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+    - name: print BUILD_NUM
+      run: echo $BUILD_NUM
 
   build-degauss-api:
     runs-on: self-hosted
