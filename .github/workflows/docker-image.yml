@@ -35,7 +35,7 @@ jobs:
     - name: print env
       run: env
     - name: Build the degauss-geocoder-api image
-      run: docker build --load degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:${{ env.BUILD_NUM }}
+      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.20.0
       with:
@@ -57,7 +57,7 @@ jobs:
     - name: print env
       run: env
     - name: Build the degauss-foundry image
-      run: docker build degauss-foundry --tag degauss-foundry:${{ env.BUILD_NUM }}
+      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-foundry --tag degauss-foundry:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.20.0
       with:
@@ -79,7 +79,7 @@ jobs:
     - name: print env
       run: env
     - name: Build the nominatim image
-      run: docker build nominatim-docker/nominatim-php83 --tag nominatim:${{ env.BUILD_NUM }}
+      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) nominatim-docker/nominatim-php83 --tag nominatim:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.20.0
       with:
@@ -101,7 +101,7 @@ jobs:
     - name: print env
       run: env
     - name: Build the postgis image
-      run: docker build postgis-docker-alpine-db/src/alpinedb --tag postgis:${{ env.BUILD_NUM }}
+      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) postgis-docker-alpine-db/src/alpinedb --tag postgis:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.20.0
       with:
