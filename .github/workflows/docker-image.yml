@@ -33,11 +33,11 @@ jobs:
     - name: print env
       run: env
     - name: Build the degauss-geocoder-api image
-      run: docker build --load degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:$BUILD_NUM
+      run: docker build --load degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.20.0
       with:
-        image-ref: degauss-geocoder-api:$BUILD_NUM
+        image-ref: degauss-geocoder-api:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
