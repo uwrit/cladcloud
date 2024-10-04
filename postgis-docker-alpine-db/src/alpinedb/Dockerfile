@@ -1,10 +1,11 @@
 # Postgis
-FROM postgis/postgis:16-3.4-alpine
+FROM postgis/postgis:16-3.7-alpine
 
 # Configure utils
 #RUN apt-get update \
 #    && apt-get install -y wget unzip postgis \
 #    && rm -rf /var/lib/apt/lists/*
+RUN apk upgrade --available
 
 ## run apk instead on alpine to install key tools
 RUN apk add wget unzip postgis libintl
