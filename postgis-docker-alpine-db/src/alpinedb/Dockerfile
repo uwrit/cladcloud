@@ -1,5 +1,5 @@
 # Postgis
-FROM postgis/postgis:16-3.7-alpine
+FROM postgis/postgis:17-3.5-alpine
 
 # Configure utils
 #RUN apt-get update \
