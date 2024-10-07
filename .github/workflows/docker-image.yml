@@ -90,9 +90,25 @@ jobs:
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
 
-  build-postgis:
+  setup-postgis-states:
     runs-on: self-hosted
     needs: clear-cache
+    outputs:
+      matrix: ${{ steps.matrix.outputs.value }}
+
+    steps:
+    - id: matrix
+      run: |
+        echo 'value=["ak", "al", "ar", "as", "az", "ca", "co", "ct", "dc", "de", "fl", "fm", "ga", "gu", "hi", "ia", "id", "il", "in", "ks", "ky", "la", "ma", "md", "me", "mh", "mi", "mn", "mo", "mp", "ms", "mt", "nc", "nd", "ne", "nh", "nj", "nm", "nv", "ny", "oh", "ok", "or", "pa", "pr", "pw", "ri", "sc", "sd", "tn", "tx", "um", "ut", "va", "vi", "vt", "wa", "wi", "wv", "wy"]' >> $GITHUB_OUTPUT
+    - run: |
+        echo "${{ steps.matrix.outputs.value }}"
+
+  build-postgis-states:
+    runs-on: self-hosted
+    needs: setup-postgis-states
+    strategy:
+      matrix:
+        value: ${{fromJSON(needs.setup.outputs.matrix)}}
 
     steps:
     - uses: actions/checkout@v4
@@ -101,13 +117,14 @@ jobs:
     - name: print env
       run: env
     - name: Build the postgis image
-      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) postgis-docker-alpine-db/src/alpinedb --tag postgis:${{ env.BUILD_NUM }}
+      run: docker build --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg GEOCODER_STATES=${{ matrix.value }} uwpostgis-foundry --tag postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.20.0
       with:
-        image-ref: postgis:${{ env.BUILD_NUM }}
+        image-ref: postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+
