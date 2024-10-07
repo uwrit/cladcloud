@@ -108,7 +108,7 @@ jobs:
     needs: setup-postgis-states
     strategy:
       matrix:
-        value: ${{fromJSON(needs.setup.outputs.matrix)}}
+        value: ${{fromJSON(needs.setup-postgis-states.outputs.matrix)}}
 
     steps:
     - uses: actions/checkout@v4
