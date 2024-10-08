@@ -37,14 +37,14 @@ jobs:
     - name: Build the degauss-geocoder-api image
       run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-alpine/degauss-geocoder-api --tag degauss-geocoder-api:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
-      uses: aquasecurity/trivy-action@0.20.0
+      uses: aquasecurity/trivy-action@0.25.0
       with:
         image-ref: degauss-geocoder-api:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
         vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
+        severity: 'CRITICAL,HIGH,MEDIUM'
 
   build-degauss-foundry:
     runs-on: self-hosted
@@ -59,14 +59,14 @@ jobs:
     - name: Build the degauss-foundry image
       run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-foundry --tag degauss-foundry:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
-      uses: aquasecurity/trivy-action@0.20.0
+      uses: aquasecurity/trivy-action@0.25.0
       with:
         image-ref: degauss-foundry:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
         vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
+        severity: 'CRITICAL,HIGH,MEDIUM'
 
   build-nominatim:
     runs-on: self-hosted
@@ -81,14 +81,14 @@ jobs:
     - name: Build the nominatim image
       run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) nominatim-docker/nominatim-php83 --tag nominatim:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
-      uses: aquasecurity/trivy-action@0.20.0
+      uses: aquasecurity/trivy-action@0.25.0
       with:
         image-ref: nominatim:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
         vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
+        severity: 'CRITICAL,HIGH,MEDIUM'
 
   setup-postgis-states:
     runs-on: self-hosted
@@ -119,12 +119,12 @@ jobs:
     - name: Build the postgis image
       run: docker build --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg GEOCODER_STATES=${{ matrix.value }} uwpostgis-foundry --tag postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
-      uses: aquasecurity/trivy-action@0.20.0
+      uses: aquasecurity/trivy-action@0.25.0
       with:
         image-ref: postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
         vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
+        severity: 'CRITICAL,HIGH,MEDIUM'
 
