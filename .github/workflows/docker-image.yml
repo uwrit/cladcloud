@@ -20,6 +20,8 @@ jobs:
     steps:
     - name: Clear docker cache
       run: docker system prune -af --volumes
+    - name: Delete docker volumes not included in system prune
+      run: docker volume prune -af
       # run: docker buildx prune -a --verbose
     - name: export BUILD_NUM to file
       run: date +%Y%m%d%H%M%S > ~/BUILD_NUM
