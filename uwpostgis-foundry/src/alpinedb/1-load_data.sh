@@ -275,7 +275,7 @@ main () {
     fi
 
     # For each selected state
-    IFS=',' read -ra STATES <<< "$GEOCODER_STATES"
+    IFS=',' read -ra STATES <<< "${GEOCODER_STATES^^}"
     for i in "${STATES[@]}"; 
     do
         ABBR=$i
