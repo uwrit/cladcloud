@@ -8,6 +8,10 @@ ENV LANG=C.UTF-8
 
 WORKDIR /app
 
+# update base first
+RUN apt -y update -qq \
+    && apt -y dist-upgrade
+
 # Inspired by https://github.com/reproducible-containers/buildkit-cache-dance?tab=readme-ov-file#apt-get-github-actions
 RUN  \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -19,12 +23,11 @@ RUN  \
     echo '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d \
     && chmod +x /usr/sbin/policy-rc.d \
     # Install all required packages.
-    && apt-get -y update -qq \
-    && apt-get -y install \
+    && apt -y install \
         locales \
     && locale-gen en_US.UTF-8 \
     && update-locale LANG=en_US.UTF-8 \
-    && apt-get -y install \
+    && apt -y install \
         -o APT::Install-Recommends="false" \
         -o APT::Install-Suggests="false" \
         # Build tools from sources.
@@ -151,3 +154,6 @@ EXPOSE 8080
 COPY conf.d/env $PROJECT_DIR/.env
 
 CMD ["/app/start.sh"]
+
+# remove bad key
+RUN rm -rf /etc/ssl/private/ssl-cert-snakeoil.key
