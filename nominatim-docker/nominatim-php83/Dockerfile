@@ -23,6 +23,7 @@ RUN  \
     echo '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d \
     && chmod +x /usr/sbin/policy-rc.d \
     # Install all required packages.
+    && apt -y update -qq \
     && apt -y install \
         locales \
     && locale-gen en_US.UTF-8 \
