@@ -20,7 +20,7 @@ ENV PGDATA=/pgdata
 RUN echo "docker_temp_server_stop && exit 0" > /docker-entrypoint-initdb.d/900-exit_before_boot.sh
 
 # force build to not use cache from a previous state(s) build:
-RUN echo "${{ GEOCODER_STATES }}" > ~/states
+RUN echo "$GEOCODER_STATES" > ~/states
 RUN ./state_download_layer.sh 
 
 # https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
