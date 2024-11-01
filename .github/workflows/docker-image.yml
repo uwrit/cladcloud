@@ -41,7 +41,7 @@ jobs:
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.25.0
       with:
-        image-ref: degauss-geocoder-api:${{ env.BUILD_NUM }}
+        image-ref: genoa-container-registry.washington.palantircloud.com/degauss-geocoder-api:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
@@ -63,7 +63,7 @@ jobs:
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.25.0
       with:
-        image-ref: degauss-foundry:${{ env.BUILD_NUM }}
+        image-ref: genoa-container-registry.washington.palantircloud.com/degauss-foundry:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
@@ -85,7 +85,7 @@ jobs:
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.25.0
       with:
-        image-ref: nominatim:${{ env.BUILD_NUM }}
+        image-ref: genoa-container-registry.washington.palantircloud.com/nominatim:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
@@ -123,7 +123,7 @@ jobs:
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.25.0
       with:
-        image-ref: postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
+        image-ref: genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
