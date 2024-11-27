@@ -19,7 +19,7 @@
     },
     "bit": {
       "Package": "bit",
-      "Version": "4.0.5",
+      "Version": "4.5.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "d242abec29412ce988848d0294b208fd",
@@ -27,7 +27,7 @@
     },
     "bit64": {
       "Package": "bit64",
-      "Version": "4.0.5",
+      "Version": "4.5.2",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "9fe98599ca456d6552421db0d6772d8f",
@@ -108,7 +108,7 @@
     },
     "digest": {
       "Package": "digest",
-      "Version": "0.6.27",
+      "Version": "0.6.37",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "a0cbe758a531d054b537d16dff4d58a1",
