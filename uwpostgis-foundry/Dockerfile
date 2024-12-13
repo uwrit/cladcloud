@@ -66,6 +66,9 @@ RUN /bin/sh -c set -eux && apk add --no-cache --virtual .fetch-deps ca-certifica
 RUN apk update
 RUN apk add wget unzip python3 py3-pip py3-psycopg vim bash postgis
 
+RUN apk upgrade --no-cache
+
+
 SHELL ["/bin/bash", "-c"]
 
 # Foundry customizations

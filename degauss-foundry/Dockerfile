@@ -33,10 +33,15 @@ RUN apk add \
 RUN gem install sqlite3 
 RUN gem install json Text
 
-
+RUN apk upgrade --no-cache
 
 RUN mkdir /app
 WORKDIR /app
+
+# Foundry customizations part 1
+RUN adduser --uid 5001 --disabled-password user
+RUN chown -R 5001:5001 /tmp /opt /app
+
 
 COPY Makefile.ruby .
 COPY /src ./src
@@ -61,9 +66,9 @@ COPY geocode.rb .
 ADD https://geomarker.s3.amazonaws.com/geocoder_2021.db /opt/geocoder.db
 
 
-# Foundry customizations
-RUN adduser --uid 5001 --disabled-password user
-RUN chown -R 5001:5001 /tmp /opt /app
+# Foundry customizations pt2
+# RUN adduser --uid 5001 --disabled-password user
+# RUN chown -R 5001:5001 /tmp /opt /app
 
 ADD entrypoint.py /usr/bin/entrypoint
 RUN chmod +x /usr/bin/entrypoint
