@@ -43,7 +43,7 @@ jobs:
     - name: print env
       run: env
     - name: Build the degauss-api image
-      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-alpine/degauss-geocoder-api --tag degauss-api:${{ env.BUILD_NUM }}
+      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-alpine/degauss-geocoder-api --platform linux/amd64 --tag degauss-api:${{ env.BUILD_NUM }}
     - name: Squash degauss-api image
       run: docker-squash -t genoa-container-registry.washington.palantircloud.com/degauss-geocoder-api:${{ env.BUILD_NUM }} degauss-api:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
@@ -67,7 +67,7 @@ jobs:
     - name: print env
       run: env
     - name: Build the degauss-foundry image
-      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-foundry --tag degauss-foundry:${{ env.BUILD_NUM }}
+      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-foundry --platform linux/amd64 --tag degauss-foundry:${{ env.BUILD_NUM }}
     - name: Squash degauss-api image
       run: docker-squash -t genoa-container-registry.washington.palantircloud.com/degauss-foundry:${{ env.BUILD_NUM }} degauss-foundry:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
@@ -91,7 +91,7 @@ jobs:
     - name: print env
       run: env
     - name: Build the nominatim image
-      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) nominatim-docker/nominatim-php83 --tag nominatim:${{ env.BUILD_NUM }}
+      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) nominatim-docker/nominatim-php83 --platform linux/amd64 --tag nominatim:${{ env.BUILD_NUM }}
     - name: Squash degauss-api image
       run: docker-squash -t genoa-container-registry.washington.palantircloud.com/nominatim:${{ env.BUILD_NUM }} nominatim:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
@@ -131,7 +131,7 @@ jobs:
     - name: print env
       run: env
     - name: Build the postgis image
-      run: docker build --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg GEOCODER_STATES=${{ matrix.value }} uwpostgis-foundry --tag postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
+      run: docker build --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg GEOCODER_STATES=${{ matrix.value }} uwpostgis-foundry --platform linux/amd64 --tag postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
     - name: Squash degauss-api image
       run: docker-squash -t genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }} postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
