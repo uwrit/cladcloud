@@ -38,9 +38,7 @@ RUN apk upgrade --no-cache
 RUN mkdir /app
 WORKDIR /app
 
-# Foundry customizations part 1
-RUN adduser --uid 5001 --disabled-password user
-RUN chown -R 5001:5001 /tmp /opt /app
+
 
 
 COPY Makefile.ruby .
@@ -65,6 +63,9 @@ COPY geocode.rb .
 
 ADD https://geomarker.s3.amazonaws.com/geocoder_2021.db /opt/geocoder.db
 
+# Foundry customizations part 1
+RUN adduser --uid 5001 --disabled-password user
+RUN chown -R 5001:5001 /tmp /opt /app
 
 # Foundry customizations pt2
 # RUN adduser --uid 5001 --disabled-password user
