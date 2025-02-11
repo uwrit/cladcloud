@@ -65,7 +65,7 @@ RUN /bin/sh -c set -eux && apk add --no-cache --virtual .fetch-deps ca-certifica
 
 ## run apk instead on alpine to install key tools
 RUN apk update
-RUN apk add wget unzip python3 py3-pip py3-psycopg vim bash postgis
+RUN apk add wget unzip python3 py3-pip py3-psycopg vim bash postgis libcurl
 
 RUN apk upgrade --no-cache
 

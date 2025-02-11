@@ -33,29 +33,7 @@ jobs:
     - name: export BUILD_NUM to file
       run: date +%Y%m%d%H%M%S > ~/BUILD_NUM
 
-  build-degauss-api:
-    runs-on: self-hosted
-    needs: clear-cache
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: import BUILD_NUM from file
-      run: echo "BUILD_NUM=$(cat ~/BUILD_NUM)" >> $GITHUB_ENV
-    - name: print env
-      run: env
-    - name: Build the degauss-api image
-      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-alpine/degauss-geocoder-api --platform linux/amd64 --tag degauss-api:${{ env.BUILD_NUM }}
-    - name: Squash degauss-api image
-      run: docker-squash -t genoa-container-registry.washington.palantircloud.com/degauss-geocoder-api:${{ env.BUILD_NUM }} degauss-api:${{ env.BUILD_NUM }}
-    - name: Run Trivy CVE vulnerability scanner
-      uses: aquasecurity/trivy-action@0.25.0
-      with:
-        image-ref: genoa-container-registry.washington.palantircloud.com/degauss-geocoder-api:${{ env.BUILD_NUM }}
-        format: 'table'
-        exit-code: '1'
-        ignore-unfixed: true
-        vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH,MEDIUM'
 
   build-degauss-foundry:
     runs-on: self-hosted
