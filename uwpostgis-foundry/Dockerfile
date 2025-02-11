@@ -1,9 +1,10 @@
 FROM postgis/postgis:16-3.5-alpine AS buildtime_init_builder
 
+ARG state_var
 ARG POSTGRES_DB=geocoder      
 ARG POSTGRES_USER=clad_svc     
 ARG POSTGRES_PASSWORD=not_on_gitlab   
-# ARG GEOCODER_STATES=AK  
+ENV GEOCODER_STATES=$state_var  
 ARG GEOCODER_YEAR=2020
 
 SHELL ["/bin/bash", "-c"]
