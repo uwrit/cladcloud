@@ -1,0 +1,53 @@
+name: Build Docker Images
+
+on:
+  push:
+    branches:
+    - "preflight"
+  pull_request:
+    branches:
+    - "preflight"
+
+
+concurrency:
+  group: ${{ github.head_ref || github.ref_name }} 
+  cancel-in-progress: true
+
+env:
+  # dynamic doesn't work, only static
+  BUILD_NUM: $(date +%Y%m%d%H%M%S)
+  REPOSITORY: 
+
+jobs:
+
+  setup-postgis-states:
+    runs-on: self-hosted
+    outputs:
+      matrix: ${{ steps.matrix.outputs.value }}
+
+
+      # values "gu","pr","as","vi"
+    steps:
+    - id: matrix
+      run: |
+        echo 'value=["pr"]' >> $GITHUB_OUTPUT
+    - run: |
+        echo "${{ steps.matrix.outputs.value }}"
+
+  build-postgis-states:
+    runs-on: self-hosted
+    needs: setup-postgis-states
+    strategy:
+      matrix:
+        value: ${{fromJSON(needs.setup-postgis-states.outputs.matrix)}}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: import BUILD_NUM from file
+      run: echo "BUILD_NUM=$(cat ~/BUILD_NUM)" >> $GITHUB_ENV
+    - name: print env
+      run: env
+    - name: Build the postgis image
+      run: docker build --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg state_var=${{ matrix.value }} uwpostgis-foundry --platform linux/amd64 --tag territory-postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
+
+
