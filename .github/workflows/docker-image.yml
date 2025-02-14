@@ -66,7 +66,7 @@ jobs:
     steps:
     - id: matrix
       run: |
-        echo 'value=["ak", "al", "ar", "az", "ca", "co", "ct", "dc", "de", "fl", "ga", "hi", "ia", "id", "il", "in", "ks", "ky", "la", "ma", "md", "me", "mi", "mn", "mo", "mp", "ms", "mt", "nc", "nd", "ne", "nh", "nj", "nm", "nv", "ny", "oh", "ok", "or", "pa", "pw", "ri", "sc", "sd", "tn", "tx", "um", "ut", "va", "vt", "wa", "wi", "wv", "wy", "pr"]' >> $GITHUB_OUTPUT
+        echo 'value=["ak", "al", "ar", "az", "ca", "co", "ct", "dc", "de", "fl", "ga", "hi", "ia", "id", "il", "in", "ks", "ky", "la", "ma", "md", "me", "mi", "mn", "mo", "ms", "mt", "nc", "nd", "ne", "nh", "nj", "nm", "nv", "ny", "oh", "ok", "or", "pa", "ri", "sc", "sd", "tn", "tx", "ut", "va", "vt", "wa", "wi", "wv", "wy", "pr"]' >> $GITHUB_OUTPUT
     - run: |
         echo "${{ steps.matrix.outputs.value }}"
 
