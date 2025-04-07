@@ -36,7 +36,7 @@ get_fips_from_abbr () {
 get_fips_files () {
     local url=$1
     local fips=$2
-    local files=($(wget --no-verbose -O - $url \
+    local files=($(wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" --no-verbose -O - $url \
         | perl -nle 'print if m{(?=\"tl)(.*?)(?<=>)}g' \
         | perl -nle 'print m{(?=\"tl)(.*?)(?<=>)}g' | sed -e 's/[\"]//g'  | sed -e 's/[>]//g' ))
     local matched=($(echo "${files[*]}" | tr ' ' '\n' | grep "tl_${YEAR}_${fips}"  ))
@@ -45,7 +45,7 @@ get_fips_files () {
 
 load_national_data () {
     cd $GISDATA
-    wget ${BASEURL}/STATE/tl_${YEAR}_us_state.zip --mirror --reject=html --no-verbose
+    wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" ${BASEURL}/STATE/tl_${YEAR}_us_state.zip --mirror --reject=html --no-verbose
     cd ${BASEPATH}/STATE
 
     $UNZIPTOOL tl_${YEAR}_us_state.zip
@@ -58,7 +58,7 @@ load_national_data () {
 
 
     cd $GISDATA
-    wget ${BASEURL}/COUNTY/tl_${YEAR}_us_county.zip --mirror --reject=html --no-verbose
+    wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" ${BASEURL}/COUNTY/tl_${YEAR}_us_county.zip --mirror --reject=html --no-verbose
     cd $GISDATA/${BASEPATH}/COUNTY
 
     for z in tl_*county.zip ; 
@@ -82,7 +82,7 @@ load_state_data () {
 
     for i in "${files[@]}" 
     do 
-        wget $BASEURL/ADDR/$i --no-verbose --mirror  
+        wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" $BASEURL/ADDR/$i --no-verbose --mirror  
     done
                                                                                                                                                                                                                                                                                                                                                                                                                                                       
     cd $GISDATA/$BASEPATH/ADDR                                                                                                                                                                                                                                                                                                                                                                                                                      
@@ -97,7 +97,7 @@ load_state_data () {
     # Place
     #############                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
     cd $GISDATA                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-    wget $BASEURL/PLACE/tl_${YEAR}_${FIPS}_place.zip --mirror --reject=html --no-verbose                                                                                                                                                                                                                                                                                                                                                                    
+    wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" $BASEURL/PLACE/tl_${YEAR}_${FIPS}_place.zip --mirror --reject=html --no-verbose                                                                                                                                                                                                                                                                                                                                                                    
     cd $GISDATA/$BASEPATH/PLACE                                                                                                                                                                                                                                                                                                                                                                                                                       
                                                                                                                                                                                                                                                                                                                                                                                                                                   
     for z in tl_${YEAR}_${FIPS}*_place.zip ; 
@@ -110,7 +110,7 @@ load_state_data () {
     # Cousub
     #############   
     cd $GISDATA                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-    wget $BASEURL/COUSUB/tl_${YEAR}_${FIPS}_cousub.zip --mirror --reject=html --no-verbose
+    wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" $BASEURL/COUSUB/tl_${YEAR}_${FIPS}_cousub.zip --mirror --reject=html --no-verbose
     cd $GISDATA/$BASEPATH/COUSUB                                                                                                                                                                                                                                                                                                                                                                                                                      
                                                                                                                                                                                                                                                                                                                                                                                                                                
     for z in tl_${YEAR}_${FIPS}*_cousub.zip ; 
@@ -123,7 +123,7 @@ load_state_data () {
     # Tract
     #############   
     cd $GISDATA                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-    wget $BASEURL/TRACT/tl_${YEAR}_${FIPS}_tract.zip --mirror --reject=html --no-verbose
+    wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" $BASEURL/TRACT/tl_${YEAR}_${FIPS}_tract.zip --mirror --reject=html --no-verbose
     cd $GISDATA/$BASEPATH/TRACT                                                                                                                                                                                                                                                                                                                                                                                                                       
                                                                                                                                                                                                                                                                                                                                                                                                                                 
     for z in tl_${YEAR}_${FIPS}*_tract.zip ; 
@@ -140,7 +140,7 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/FACES/$i --no-verbose --mirror 
+        wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" $BASEURL/FACES/$i --no-verbose --mirror 
     done
 
     cd $GISDATA/$BASEPATH/FACES/                                                                                                                                                                                                                                                                                                                                                                                                                      
@@ -159,7 +159,7 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/FEATNAMES/$i --no-verbose --mirror 
+        wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" $BASEURL/FEATNAMES/$i --no-verbose --mirror 
     done
 
     cd $GISDATA/$BASEPATH/FEATNAMES/
@@ -181,7 +181,7 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/EDGES/$i --no-verbose --mirror 
+        wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" $BASEURL/EDGES/$i --no-verbose --mirror 
     done
 
     cd $GISDATA/$BASEPATH/EDGES                                                                                                                                                                                                                                                                                                                                                                                                                       
