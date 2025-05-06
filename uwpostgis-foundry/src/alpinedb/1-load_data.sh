@@ -6,7 +6,9 @@ GISDATA="/gisdata"
 TMPDIR="${GISDATA}/temp/"
 UNZIPTOOL=unzip
 YEAR=$GEOCODER_YEAR
-BASEPATH="www2.census.gov/geo/tiger/TIGER${YEAR}"
+[[ -z $TIGER_DOMAIN ]] || TIGER_DOMAIN="www2.census.gov"
+# as used by wget path
+BASEPATH="${TIGER_DOMAIN}/geo/tiger/TIGER${YEAR}"
 BASEURL="http://${BASEPATH}"
 
 export PGPASSWORD=$POSTGRES_PASSWORD
