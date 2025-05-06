@@ -4,8 +4,10 @@ GISDATA="/gisdata"
 TMPDIR="${GISDATA}/temp/"
 UNZIPTOOL=unzip
 YEAR=2020
+# as used by wget path
 BASEPATH="www2.census.gov/geo/tiger/TIGER${YEAR}"
-BASEURL="https://${BASEPATH}"
+BASEURL="http://${BASEPATH}"
+#BASEURL="http://clad-github-builder.rit.uw.edu${BASEPATH}"
 
 mkdir -p ${TMPDIR}
 
