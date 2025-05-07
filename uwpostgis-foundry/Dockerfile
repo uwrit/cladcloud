@@ -1,6 +1,7 @@
 FROM postgis/postgis:16-3.5-alpine AS buildtime_init_builder
 
 ARG state_var
+ARG TIGER_DOMAIN
 ARG POSTGRES_DB=geocoder      
 ARG POSTGRES_USER=clad_svc     
 ARG POSTGRES_PASSWORD=not_on_gitlab   
