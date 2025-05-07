@@ -74,6 +74,7 @@ jobs:
   build-postgis-states:
     runs-on: self-hosted
     needs: setup-postgis-states
+    continue-on-error: true
     strategy:
       matrix:
         value: ${{fromJSON(needs.setup-postgis-states.outputs.matrix)}}
