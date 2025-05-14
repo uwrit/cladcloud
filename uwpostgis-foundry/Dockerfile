@@ -34,7 +34,7 @@ RUN ./download_state.sh
 # https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
 # Initialize the database during the build
 # PART 1
-RUN docker-entrypoint.sh postgres
+RUN bash -x docker-entrypoint.sh postgres
 
 
 
