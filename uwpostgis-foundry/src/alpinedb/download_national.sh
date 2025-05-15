@@ -35,16 +35,16 @@ cd $GISDATA
 wget ${BASEURL}/STATE/tl_${YEAR}_us_state.zip --mirror --reject=html --no-verbose
 
 cd ${BASEPATH}/STATE
-for z in tl_*state.zip ; 
-do 
-    $UNZIPTOOL -od $OUTDIR $z; 
+for z in tl_*state.zip ;
+do
+    $UNZIPTOOL -od $OUTDIR $z;
 done
 
 cd $GISDATA
 wget ${BASEURL}/COUNTY/tl_${YEAR}_us_county.zip --mirror --reject=html --no-verbose
 
 cd ${BASEPATH}/COUNTY
-for z in tl_*county.zip ; 
-do 
-    $UNZIPTOOL -od $OUTDIR $z; 
+for z in tl_*county.zip ;
+do
+    $UNZIPTOOL -od $OUTDIR $z;
 done

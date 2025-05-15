@@ -71,52 +71,52 @@ load_state_data () {
     cd $GISDATA
     files=($(get_fips_files $BASEURL/ADDR $FIPS))
 
-    for i in "${files[@]}" 
-    do 
-        wget $BASEURL/ADDR/$i --no-verbose --mirror  
+    for i in "${files[@]}"
+    do
+        wget $BASEURL/ADDR/$i --no-verbose --mirror
     done
-                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-    cd $GISDATA/$BASEPATH/ADDR                                                                                                                                                                                                                                                                                                                                                                                                                      
-                                                                                                                                                                                                                                                                                                                                                                                                                                  
-    for z in tl_${YEAR}_${FIPS}*_addr.zip ; 
-    do 
-        $UNZIPTOOL -o -d $OUTDIR $z; 
-    done   
+
+    cd $GISDATA/$BASEPATH/ADDR
+
+    for z in tl_${YEAR}_${FIPS}*_addr.zip ;
+    do
+        $UNZIPTOOL -o -d $OUTDIR $z;
+    done
 
     #############
     # Place
     #############
-    cd $GISDATA                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-    wget $BASEURL/PLACE/tl_${YEAR}_${FIPS}_place.zip --mirror --reject=html --no-verbose                                                                                                                                                                                                                                                                                                                                                                    
-    cd $GISDATA/$BASEPATH/PLACE                                                                                                                                                                                                                                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                                                                                                                                                                                                  
-    for z in tl_${YEAR}_${FIPS}*_place.zip ; 
-    do 
-        $UNZIPTOOL -o -d $OUTDIR $z; 
+    cd $GISDATA
+    wget $BASEURL/PLACE/tl_${YEAR}_${FIPS}_place.zip --mirror --reject=html --no-verbose
+    cd $GISDATA/$BASEPATH/PLACE
+
+    for z in tl_${YEAR}_${FIPS}*_place.zip ;
+    do
+        $UNZIPTOOL -o -d $OUTDIR $z;
     done
 
     #############
     # Cousub
     #############
-    cd $GISDATA                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+    cd $GISDATA
     wget $BASEURL/COUSUB/tl_${YEAR}_${FIPS}_cousub.zip --mirror --reject=html --no-verbose
-    cd $GISDATA/$BASEPATH/COUSUB                                                                                                                                                                                                                                                                                                                                                                                                                      
-                                                                                                                                                                                                                                                                                                                                                                                                                               
-    for z in tl_${YEAR}_${FIPS}*_cousub.zip ; 
-    do 
-        $UNZIPTOOL -o -d $OUTDIR $z; 
+    cd $GISDATA/$BASEPATH/COUSUB
+
+    for z in tl_${YEAR}_${FIPS}*_cousub.zip ;
+    do
+        $UNZIPTOOL -o -d $OUTDIR $z;
     done
 
     #############
     # Tract
     #############
-    cd $GISDATA                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+    cd $GISDATA
     wget $BASEURL/TRACT/tl_${YEAR}_${FIPS}_tract.zip --mirror --reject=html --no-verbose
-    cd $GISDATA/$BASEPATH/TRACT                                                                                                                                                                                                                                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                                                                                                                                                                                                
-    for z in tl_${YEAR}_${FIPS}*_tract.zip ; 
-    do 
-        $UNZIPTOOL -o -d $OUTDIR $z; 
+    cd $GISDATA/$BASEPATH/TRACT
+
+    for z in tl_${YEAR}_${FIPS}*_tract.zip ;
+    do
+        $UNZIPTOOL -o -d $OUTDIR $z;
     done
 
     #############
@@ -127,14 +127,14 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/FACES/$i --no-verbose --mirror 
+        wget $BASEURL/FACES/$i --no-verbose --mirror
     done
 
-    cd $GISDATA/$BASEPATH/FACES/                                                                                                                                                                                                                                                                                                                                                                                                                      
-                                                                                                                                                                                                                                                                                                                                                                                                                               
-    for z in tl_${YEAR}_${FIPS}*_faces.zip ; 
-    do 
-        $UNZIPTOOL -o -d $OUTDIR $z; 
+    cd $GISDATA/$BASEPATH/FACES/
+
+    for z in tl_${YEAR}_${FIPS}*_faces.zip ;
+    do
+        $UNZIPTOOL -o -d $OUTDIR $z;
     done
 
     #############
@@ -145,16 +145,16 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/FEATNAMES/$i --no-verbose --mirror 
+        wget $BASEURL/FEATNAMES/$i --no-verbose --mirror
     done
 
     cd $GISDATA/$BASEPATH/FEATNAMES/
-                                                                                                                                                                                                                                                                                                                                                                                                                     
-    for z in tl_${YEAR}_${FIPS}*_featnames.zip ; 
-    do 
+
+    for z in tl_${YEAR}_${FIPS}*_featnames.zip ;
+    do
         $UNZIPTOOL -o -d $OUTDIR $z;
     done
-    cd $OUTDIR;                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+    cd $OUTDIR;
 
     #############
     # Edges
@@ -164,20 +164,20 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/EDGES/$i --no-verbose --mirror 
+        wget $BASEURL/EDGES/$i --no-verbose --mirror
     done
 
-    cd $GISDATA/$BASEPATH/EDGES                                                                                                                                                                                                                                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                                                                                                                                                                                     
-    for z in tl_${YEAR}_${FIPS}*_edges.zip ; 
-    do 
-        $UNZIPTOOL -o -d $OUTDIR $z; 
+    cd $GISDATA/$BASEPATH/EDGES
+
+    for z in tl_${YEAR}_${FIPS}*_edges.zip ;
+    do
+        $UNZIPTOOL -o -d $OUTDIR $z;
     done
 }
 
 # For each selected state
 IFS=',' read -ra GEO_STATES <<< "${STATES^^}"
-for ABBR in "${GEO_STATES[@]}"; 
+for ABBR in "${GEO_STATES[@]}";
 do
     FIPS=$(get_fips_from_abbr $ABBR)
     if [ $FIPS -eq 0 ]; then

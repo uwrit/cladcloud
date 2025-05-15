@@ -2,9 +2,9 @@ FROM postgis/postgis:16-3.5-alpine AS buildtime_init_builder
 
 ARG state_var
 ARG TIGER_DOMAIN
-ARG POSTGRES_DB=geocoder      
-ARG POSTGRES_USER=clad_svc     
-ARG POSTGRES_PASSWORD=not_on_gitlab   
+ARG POSTGRES_DB=geocoder
+ARG POSTGRES_USER=clad_svc
+ARG POSTGRES_PASSWORD=not_on_gitlab
 ARG GEOCODER_YEAR=2020
 
 ENV STATES=${state_var}
@@ -29,7 +29,7 @@ RUN echo "docker_temp_server_stop && exit 0" > /docker-entrypoint-initdb.d/900-e
 
 # force build to not use cache from a previous state(s) build:
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
-RUN ./download_state.sh 
+RUN ./download_state.sh
 
 # https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
 # Initialize the database during the build
@@ -58,10 +58,10 @@ RUN /bin/sh -c set -eux; wget -O postgresql.tar.bz2 "https://ftp.postgresql.org/
 
 RUN /bin/sh -c set -eux; cp -v /usr/local/share/postgresql/postgresql.conf.sample /usr/local/share/postgresql/postgresql.conf.sample.orig; sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/local/share/postgresql/postgresql.conf.sample; grep -F "listen_addresses = '*'" /usr/local/share/postgresql/postgresql.conf.sample # buildkit
 
-RUN mkdir -m 777 /var/run/postgresql 
+RUN mkdir -m 777 /var/run/postgresql
 RUN chown -R postgres:postgres /var/run/postgresql # buildkit
 
-RUN mkdir -m 777 /pgdata_init 
+RUN mkdir -m 777 /pgdata_init
 RUN chown -R postgres:postgres /pgdata_init # buildkit
 
 CMD ["postgres"]
@@ -100,7 +100,7 @@ RUN chown -R 5001:5001 /tmp /foundry_venv /var/run/postgresql
 # Initialize the database during the build
 # PART 2
 ## copy database from initialization layer
-RUN mkdir -m 700 /pgdata 
+RUN mkdir -m 700 /pgdata
 RUN chown 5001:5001 /pgdata
 COPY --chown=5001:5001 --chmod=700 --from=buildtime_init_builder /pgdata /pgdata
 ENV PGDATA=/pgdata
