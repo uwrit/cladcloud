@@ -12,6 +12,7 @@ usage(){
 [[ -z ${YEAR} ]] && YEAR="2020"
 [[ -z ${GISDATA} ]] && GISDATA="/tmp" #"/gisdata"
 [[ -z ${OUTDIR} ]] && OUTDIR="${GISDATA}/gisdata/"
+[[ -z ${DOWNLOADTOOL} ]] && DOWNLOADTOOL="wget --no-check-certificate --mirror --reject=html --no-verbose "
 [[ -z ${UNZIPTOOL} ]] && UNZIPTOOL=unzip
 
 while getopts "d:s:y:?" arg; do
@@ -73,7 +74,7 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/ADDR/$i --no-verbose --mirror
+        ${DOWNLOADTOOL} $BASEURL/ADDR/$i
     done
 
     cd $GISDATA/$BASEPATH/ADDR
@@ -87,7 +88,7 @@ load_state_data () {
     # Place
     #############
     cd $GISDATA
-    wget $BASEURL/PLACE/tl_${YEAR}_${FIPS}_place.zip --mirror --reject=html --no-verbose
+    ${DOWNLOADTOOL} $BASEURL/PLACE/tl_${YEAR}_${FIPS}_place.zip
     cd $GISDATA/$BASEPATH/PLACE
 
     for z in tl_${YEAR}_${FIPS}*_place.zip ;
@@ -99,7 +100,7 @@ load_state_data () {
     # Cousub
     #############
     cd $GISDATA
-    wget $BASEURL/COUSUB/tl_${YEAR}_${FIPS}_cousub.zip --mirror --reject=html --no-verbose
+    ${DOWNLOADTOOL} $BASEURL/COUSUB/tl_${YEAR}_${FIPS}_cousub.zip
     cd $GISDATA/$BASEPATH/COUSUB
 
     for z in tl_${YEAR}_${FIPS}*_cousub.zip ;
@@ -111,7 +112,7 @@ load_state_data () {
     # Tract
     #############
     cd $GISDATA
-    wget $BASEURL/TRACT/tl_${YEAR}_${FIPS}_tract.zip --mirror --reject=html --no-verbose
+    ${DOWNLOADTOOL} $BASEURL/TRACT/tl_${YEAR}_${FIPS}_tract.zip
     cd $GISDATA/$BASEPATH/TRACT
 
     for z in tl_${YEAR}_${FIPS}*_tract.zip ;
@@ -127,7 +128,7 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/FACES/$i --no-verbose --mirror
+        ${DOWNLOADTOOL} $BASEURL/FACES/$i
     done
 
     cd $GISDATA/$BASEPATH/FACES/
@@ -145,7 +146,7 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/FEATNAMES/$i --no-verbose --mirror
+        ${DOWNLOADTOOL} $BASEURL/FEATNAMES/$i
     done
 
     cd $GISDATA/$BASEPATH/FEATNAMES/
@@ -164,7 +165,7 @@ load_state_data () {
 
     for i in "${files[@]}"
     do
-        wget $BASEURL/EDGES/$i --no-verbose --mirror
+        ${DOWNLOADTOOL} $BASEURL/EDGES/$i
     done
 
     cd $GISDATA/$BASEPATH/EDGES

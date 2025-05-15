@@ -1,5 +1,6 @@
-FROM postgis/postgis:16-3.5-alpine AS buildtime_init_builder
+FROM postgis/postgis:17-3.5-alpine AS buildtime_init_builder
 
+# build vars
 ARG state_var
 ARG TIGER_DOMAIN
 ARG POSTGRES_DB=geocoder
@@ -7,6 +8,7 @@ ARG POSTGRES_USER=clad_svc
 ARG POSTGRES_PASSWORD=not_on_gitlab
 ARG GEOCODER_YEAR=2020
 
+# runtime vars
 ENV STATES=${state_var}
 ENV TIGER_DOMAIN=${TIGER_DOMAIN}
 ENV PGDATA=/pgdata
