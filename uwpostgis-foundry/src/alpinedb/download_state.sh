@@ -186,6 +186,6 @@ do
         echo '----------------------------------------'
         echo "      Loading state data for: '$ABBR $FIPS'"
         echo '----------------------------------------'
-        # load_state_data $ABBR $FIPS
+        load_state_data $ABBR $FIPS
     fi
 done
