@@ -80,7 +80,7 @@ jobs:
         value: ${{fromJSON(needs.setup-postgis-states.outputs.matrix)}}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: import BUILD_NUM from file
       run: echo "BUILD_NUM=$(cat ~/BUILD_NUM)" >> $GITHUB_ENV
     - name: print env
