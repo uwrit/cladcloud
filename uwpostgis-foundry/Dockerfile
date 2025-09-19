@@ -1,4 +1,4 @@
-FROM postgis/postgis:16-3.5-alpine AS buildtime_init_builder
+FROM postgis/postgis:17-3.5-alpine AS buildtime_init_builder
 
 ARG state_var
 ARG TIGER_DOMAIN
