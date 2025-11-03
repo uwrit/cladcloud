@@ -36,8 +36,6 @@ RUN ./download_state.sh
 # PART 1
 RUN bash -x docker-entrypoint.sh postgres
 
-
-
 FROM alpine:latest AS buildtime_init
 
 RUN adduser --uid 5001 --disabled-password user
@@ -47,9 +45,9 @@ CMD ["/bin/sh"]
 RUN /bin/sh -c set -eux; addgroup -g 70 -S postgres; adduser -u 70 -S -D -G postgres -H -h /var/lib/postgresql -s /bin/sh postgres; install --verbose --directory --owner postgres --group postgres --mode 1777 /var/lib/postgresql # buildkit
 
 ENV LANG=en_US.utf8
-ENV PG_MAJOR=16
-ENV PG_VERSION=16.9
-ENV PG_SHA256=07c00fb824df0a0c295f249f44691b86e3266753b380c96f633c3311e10bd005
+ENV PG_MAJOR=17
+ENV PG_VERSION=17.6
+ENV PG_SHA256=e0630a3600aea27511715563259ec2111cd5f4353a4b040e0be827f94cd7a8b0
 ENV POSTGIS_VERSION=3.5.2
 ENV POSTGIS_SHA256=71d8f5d06debec0bdd94525a5a1d42417ed2a1f65d0070a1a3e3e381b606ee35
 ENV PGDATA=/pgdata_init
@@ -75,6 +73,7 @@ RUN apk update
 RUN apk add wget unzip python3 py3-pip py3-psycopg vim bash postgis libcurl
 
 RUN apk upgrade --no-cache
+RUN python3 -m pip freezee | sed 's/--.*//' | xargs python3 -m pip install --upgrade --break-system-packages
 
 SHELL ["/bin/bash", "-c"]
 
