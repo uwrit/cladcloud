@@ -27,6 +27,7 @@ RUN apk add \
     sqlite-libs \
     ruby-dev \
     ruby-full \
+    python3 \
     py3-pip \
     vim
 
