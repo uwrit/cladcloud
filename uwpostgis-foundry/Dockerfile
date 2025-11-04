@@ -73,7 +73,7 @@ RUN apk update
 RUN apk add wget unzip python3 py3-pip py3-psycopg vim bash postgis libcurl
 
 RUN apk upgrade --no-cache
-RUN python3 -m pip freezee | sed 's/--.*//' | xargs python3 -m pip install --upgrade --break-system-packages
+RUN python3 -m pip freeze | sed 's/--.*//' | xargs python3 -m pip install --upgrade --break-system-packages
 
 SHELL ["/bin/bash", "-c"]
 
