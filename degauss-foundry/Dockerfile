@@ -1,4 +1,4 @@
-FROM rhub/r-minimal:latest
+FROM rhub/r-minimal:4.5.0
 RUN apk upgrade --no-cache
 
 # DeGAUSS container metadata
