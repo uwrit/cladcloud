@@ -38,7 +38,7 @@ RUN bash -x docker-entrypoint.sh postgres
 
 # PART 2
 ## copy database from initialization layer
-FROM postgis/postgis:17-3.5-alpine AS buildtime_init
+FROM alpine:latest AS buildtime_init
 RUN apk upgrade --no-cache
 ## run apk to install key tools
 RUN apk add bash libcurl postgis py3-pip py3-psycopg unzip vim wget
