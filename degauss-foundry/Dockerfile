@@ -1,4 +1,4 @@
-FROM rhub/r-minimal:4.5.1
+FROM rhub/r-minimal:4.5.0
 
 # DeGAUSS container metadata
 ENV degauss_name="geocoder"
