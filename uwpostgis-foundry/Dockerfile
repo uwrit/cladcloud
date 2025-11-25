@@ -70,9 +70,9 @@ RUN /bin/sh -c set -eux && apk add --no-cache --virtual .fetch-deps ca-certifica
 
 ## run apk instead on alpine to install key tools
 RUN apk update
-RUN apk add wget unzip python3 py3-pip py3-psycopg vim bash postgis libcurl
-
 RUN apk upgrade --no-cache
+RUN apk add wget unzip python3 py3-pip py3-psycopg vim bash postgis libcurl
+RUN python3 -m pip install --upgrade --break-system-packages pip
 RUN python3 -m pip freeze | sed 's/--.*//' | xargs python3 -m pip install --upgrade --break-system-packages
 
 SHELL ["/bin/bash", "-c"]
