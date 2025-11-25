@@ -1,4 +1,4 @@
-FROM rhub/r-minimal:4.5.0
+FROM rhub/r-minimal:latest
 
 # DeGAUSS container metadata
 ENV degauss_name="geocoder"
@@ -53,7 +53,7 @@ WORKDIR /app
 
 # install required version of renv
 RUN R --quiet -e "install.packages('remotes', repos = 'https://packagemanager.rstudio.com/all/__linux__/focal/latest')"
-RUN R --quiet -e "remotes::install_github('rstudio/renv@0.15.4')"
+RUN R --quiet -e "remotes::install_github('rstudio/renv@0.15.5')"
 
 COPY renv.lock .
 RUN R --quiet -e "renv::restore()"
