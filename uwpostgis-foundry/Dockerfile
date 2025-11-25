@@ -42,6 +42,7 @@ FROM alpine:latest AS buildtime_init
 RUN apk upgrade --no-cache
 ## run apk to install key tools
 RUN apk add bash libcurl postgis py3-pip py3-psycopg unzip vim wget
+RUN python3 -m pip install --upgrade --break-system-packages pip
 RUN python3 -m pip freeze | sed 's/==/>=/g' | xargs python3 -m pip install --upgrade --break-system-packages
 
 ## image rebuild from scratch
