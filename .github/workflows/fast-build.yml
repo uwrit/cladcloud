@@ -53,6 +53,7 @@ jobs:
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
+        timeout: '1h'
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
 
@@ -92,5 +93,6 @@ jobs:
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
+        timeout: '1h'
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
