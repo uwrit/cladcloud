@@ -84,7 +84,9 @@ ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 
 RUN python3 -m venv foundry_venv
 COPY requirements.txt ./
+RUN /foundry_venv/bin/pip install --upgrade pip
 RUN /foundry_venv/bin/pip install --no-cache-dir -r requirements.txt
+RUN /foundry_venv/bin/pip freeze | sed 's/--.*//' | xargs /foundry_venv/bin/pip install --upgrade
 
 ADD entrypoint.py /usr/bin/entrypoint
 RUN chmod +x /usr/bin/entrypoint
