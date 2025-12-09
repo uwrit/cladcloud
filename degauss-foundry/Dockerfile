@@ -52,7 +52,7 @@ RUN R --quiet -e "remotes::install_github('rstudio/renv')"
 COPY renv.lock .
 RUN R --quiet -e "renv::restore()"
 
-ADD https://geomarker.s3.amazonaws.com/geocoder_2021.db /opt/geocoder.db
+ADD https://colebrokamp-dropbox.s3.amazonaws.com/geocoder.db /opt/geocoder.db
 
 # Foundry customizations
 COPY entrypointCSV.R .
