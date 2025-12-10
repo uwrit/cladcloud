@@ -61,7 +61,7 @@ RUN R --quiet -e "renv::restore()"
 COPY entrypointCSV.R .
 COPY geocode.rb .
 
-ADD https://geomarker.s3.amazonaws.com/geocoder_2021.db /opt/geocoder.db
+ADD https://colebrokamp-dropbox.s3.amazonaws.com/geocoder.db /opt/geocoder.db
 
 # Foundry customizations part 1
 RUN adduser --uid 5001 --disabled-password user
