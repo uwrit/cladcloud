@@ -147,9 +147,7 @@ lw_vasprintf (result, format, args)
   va_list temp;
 
   /* Use va_copy for compatibility with both 32 and 64 bit args */
-  // __va_copy(temp, args);
-
-  va_copy(temp, args);
+  __va_copy(temp, args);
 
   return int_vasprintf (result, format, &temp);
 }

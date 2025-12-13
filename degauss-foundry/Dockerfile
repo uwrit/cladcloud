@@ -1,8 +1,17 @@
 # https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
 # compile the gem for the build
 # PART 1
-FROM rocker/r-ver:4.4.1
+FROM rocker/r-ver AS compiler
 
+# copy statics
+RUN mkdir /app
+WORKDIR /app
+COPY Makefile.ruby .
+COPY /src ./src
+COPY /lib ./lib
+COPY /gemspec ./gemspec
+
+# install dependencies
 RUN apt-get update && apt-get install -y \
     bison \
     flex \
@@ -17,23 +26,16 @@ RUN apt-get update && apt-get install -y \
     ruby-full \
     sqlite3 \
     software-properties-common
-
 RUN gem install sqlite3 json Text
+RUN apt-get dist-upgrade -yq
 
-RUN mkdir /app
-WORKDIR /app
-
-COPY Makefile.ruby .
-COPY /src ./src
-COPY /lib ./lib
-COPY /gemspec ./gemspec
-
-RUN make -f Makefile.ruby install 
+# build gem
+RUN make -f Makefile.ruby install
 
 
 # PART 2
-## copy build from initialization layer
-FROM rhub/r-minimal:4.5.0 AS buildtime_init
+## ADD build from initialization layer
+FROM rhub/r-minimal
 
 # DeGAUSS container metadata
 ENV degauss_name="geocoder"
@@ -47,51 +49,28 @@ LABEL "org.degauss.version"="${degauss_version}"
 LABEL "org.degauss.description"="${degauss_description}"
 LABEL "org.degauss.argument"="${degauss_argument}"
 
+# copy statics
 RUN mkdir /app
 WORKDIR /app
-
-COPY --from=buildtime_init_builder Geocoder-US-2.0.4.gem Geocoder-US-2.0.4.gem
+COPY --from=compiler /app/Geocoder-US-2.0.4.gem Geocoder-US-2.0.4.gem
 ADD https://colebrokamp-dropbox.s3.amazonaws.com/geocoder.db /opt/geocoder.db
-
-RUN apk add \
-    bison \
-    flex \
-    g++ \
-    gcc \
-    gnupg \
-    linux-headers \
-    musl-dev \
-    py3-pip \
-    ruby \
-    sqlite \
-    vim
-RUN apk upgrade --no-cache
-
-RUN gem install json sqlite3 Text
-RUN gem install Geocoder-US-2.0.4.gem
-
-# install required version of renv
-RUN R --quiet -e "install.packages('remotes', repos = c(CRAN = 'https://packagemanager.posit.co/cran/latest'))"
-RUN R --quiet -e "remotes::install_github('rstudio/renv@v1.0.7')"
-
-COPY renv.lock .
-RUN R --quiet -e "renv::restore(repos = c(CRAN = 'https://packagemanager.posit.co/cran/latest'))"
-
 COPY entrypoint.R .
 COPY geocode.rb .
 
-# Foundry customizations part 1
+# install entrypoint.R dependencies
+RUN apk add py3-pip ruby
+RUN gem install Geocoder-US-2.0.4.gem
+RUN R --quiet -e "install.packages(c('digest','knitr','mappp','remotes'), repos=c(CRAN='https://packagemanager.posit.co/cran/latest'))"
+RUN R --quiet -e "remotes::install_github('degauss-org/dht')"
+RUN apk upgrade --no-cache
+
+# Foundry customizations
+COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
 RUN adduser --uid 5001 --disabled-password user
-RUN chown -R 5001:5001 /tmp /opt /app
+RUN chown -R 5001:5001 /tmp /app
 
-# Foundry customizations pt2
-# RUN adduser --uid 5001 --disabled-password user
-# RUN chown -R 5001:5001 /tmp /opt /app
-
-ADD entrypoint.py /usr/bin/entrypoint
-RUN chmod +x /usr/bin/entrypoint
 RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
-RUN chown 5001 /opt/palantir/sidecars/shared-volumes/shared/
+RUN chown -R 5001:5001 /opt
 ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 
 USER 5001
