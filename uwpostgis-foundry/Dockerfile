@@ -37,6 +37,8 @@ RUN bash -x docker-entrypoint.sh postgres
 
 # PART 2
 FROM postgis/postgis:17-3.5-alpine
+# not used, old, and has CVEs
+RUN rm -f /usr/local/bin/gosu
 
 # copy statics
 RUN mkdir -m 700 /pgdata
