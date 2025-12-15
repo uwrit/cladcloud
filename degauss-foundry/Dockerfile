@@ -1,6 +1,5 @@
-# https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
+# PART 1 - https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
 # compile the gem for the build
-# PART 1
 FROM rocker/r-ver AS compiler
 
 # copy statics
@@ -52,10 +51,10 @@ LABEL "org.degauss.argument"="${degauss_argument}"
 # copy statics
 RUN mkdir /app
 WORKDIR /app
-COPY --from=compiler /app/Geocoder-US-2.0.4.gem Geocoder-US-2.0.4.gem
-ADD https://colebrokamp-dropbox.s3.amazonaws.com/geocoder.db /opt/geocoder.db
 COPY entrypoint.R .
 COPY geocode.rb .
+COPY --from=compiler /app/Geocoder-US-2.0.4.gem Geocoder-US-2.0.4.gem
+ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /opt/geocoder.db
 
 # install entrypoint.R dependencies
 RUN apk add py3-pip ruby
@@ -67,12 +66,10 @@ RUN apk upgrade --no-cache
 # Foundry customizations
 COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
 RUN adduser --uid 5001 --disabled-password user
-RUN chown -R 5001:5001 /tmp /app
-
 RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
-RUN chown -R 5001:5001 /opt
-ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
+RUN chown -R 5001:5001 /app /opt /tmp
 
 USER 5001
+ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
 ENTRYPOINT entrypoint -c "/app/entrypoint.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all"
