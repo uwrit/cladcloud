@@ -98,4 +98,3 @@ jobs:
         timeout: '1h'
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
-
