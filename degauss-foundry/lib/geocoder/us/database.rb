@@ -153,8 +153,7 @@ module Geocoder::US
         result = st.execute(*params)
         columns = result.columns.map {|c| c.to_sym}
         result.each {|row|
-           rows << Hash[*(columns.zip(row).flatten)]}
-        
+           rows << columns.zip(row).to_h}
       end
       if @debug
         runtime = format("%.3f", Time.now - start)

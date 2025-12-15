@@ -1,39 +1,37 @@
-FROM postgis/postgis:16-3.5-alpine AS buildtime_init_builder
+# https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
+# Initialize the database during the build
+# PART 1
+FROM postgis/postgis:17-3.5-alpine AS db_creator
 
-ARG state_var
+# copy statics
+RUN mkdir -m 777 /gisdata
+COPY ./src/alpinedb/download_national.sh .
+COPY ./src/alpinedb/download_state.sh .
+COPY ./src/alpinedb/1-load_data.sh /docker-entrypoint-initdb.d/
+
+# national data first
+# build vars
 ARG TIGER_DOMAIN
 ARG POSTGRES_DB=geocoder
 ARG POSTGRES_USER=clad_svc
 ARG POSTGRES_PASSWORD=not_on_gitlab
 ARG GEOCODER_YEAR=2020
 
-ENV STATES=${state_var}
+# runtime vars
 ENV TIGER_DOMAIN=${TIGER_DOMAIN}
 ENV PGDATA=/pgdata
 
 SHELL ["/bin/bash", "-c"]
-
-RUN apk add wget unzip postgis libintl
-# Make data dir
-RUN mkdir -p /gisdata \
-    && chmod 777 -R /gisdata
-
-# download national data first
-COPY ./src/alpinedb/download_national.sh .
+RUN apk add libintl postgis unzip wget
+RUN echo "docker_temp_server_stop && exit 0" > /docker-entrypoint-initdb.d/900-exit_before_boot.sh
 RUN ./download_national.sh
 
-#download state data in separate layer
-COPY ./src/alpinedb/download_state.sh .
-COPY ./src/alpinedb/1-load_data.sh /docker-entrypoint-initdb.d/
-RUN echo "docker_temp_server_stop && exit 0" > /docker-entrypoint-initdb.d/900-exit_before_boot.sh
-
-# force build to not use cache from a previous state(s) build:
-ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
+# state data second
+# ARG forces build to not use cache from a previous state(s) build:
+ARG state_var
+ENV STATES=${state_var}
 RUN ./download_state.sh
 
-# https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
-# Initialize the database during the build
-# PART 1
 RUN bash -x docker-entrypoint.sh postgres
 
 FROM alpine:latest AS buildtime_init
@@ -78,6 +76,7 @@ RUN python3 -m pip freeze | sed 's/--.*//' | xargs python3 -m pip install --upgr
 SHELL ["/bin/bash", "-c"]
 
 # Foundry customizations
+RUN adduser --uid 5001 --disabled-password user
 RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
 RUN chown 5001 /opt/palantir/sidecars/shared-volumes/shared/
 ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
@@ -91,21 +90,10 @@ RUN /foundry_venv/bin/pip freeze | sed 's/--.*//' | xargs /foundry_venv/bin/pip 
 ADD entrypoint.py /usr/bin/entrypoint
 RUN chmod +x /usr/bin/entrypoint
 
-COPY process_csv.py ./
+# copy database from db_creator
+COPY --chmod=700 --from=db_creator /pgdata /pgdata
+RUN chown -R 5001:5001 /tmp /var/run/postgresql /pgdata
 
 WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
-
-RUN chown -R 5001:5001 /tmp /foundry_venv /var/run/postgresql
-
-# https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
-# Initialize the database during the build
-# PART 2
-## copy database from initialization layer
-RUN mkdir -m 700 /pgdata
-RUN chown 5001:5001 /pgdata
-COPY --chown=5001:5001 --chmod=700 --from=buildtime_init_builder /pgdata /pgdata
-ENV PGDATA=/pgdata
-
 USER 5001
-
-ENTRYPOINT entrypoint -c "/foundry_venv/bin/python3 /process_csv.py"
+ENTRYPOINT entrypoint -c "/process_csv.py"
