@@ -22,6 +22,14 @@ env:
 
 jobs:
 
+  export-build-num:
+    runs-on: self-hosted
+
+    steps:
+    - name: export BUILD_NUM to file
+      run: date +%Y%m%d%H%M%S > ~/BUILD_NUM
+
+
   build-degauss-foundry:
     runs-on: self-hosted
 
