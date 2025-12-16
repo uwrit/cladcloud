@@ -32,6 +32,7 @@ jobs:
 
   build-degauss-foundry:
     runs-on: self-hosted
+    needs: export-build-num
 
     steps:
     - uses: actions/checkout@v5
@@ -54,6 +55,7 @@ jobs:
 
   setup-postgis-states:
     runs-on: self-hosted
+    needs: export-build-num
     outputs:
       matrix: ${{ steps.matrix.outputs.value }}
 
