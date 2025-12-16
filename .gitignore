@@ -2,3 +2,8 @@ degauss-alpine/.DS_Store
 postgis-docker-alpine-db/.DS_Store
 postgis-docker-alpine-db/src/.DS_Store
 .DS_Store
+
+# Ignore all directories named 'data' anywhere in the repo
+**/data/
+# Except the top-level 'data' directory (note the leading slash)
+!/data/
