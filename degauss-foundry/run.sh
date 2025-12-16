@@ -15,7 +15,7 @@ docker build \
   -t degauss-foundry . 
 
 echo "Running trivy scan..."
-# trivy image degauss-foundry
+trivy image degauss-foundry
 
 echo "Running docker container..."
 docker run \
