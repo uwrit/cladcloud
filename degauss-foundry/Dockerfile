@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
     ruby-full \
     sqlite3 \
     wget \
+    make \
+    git \
     software-properties-common
 RUN gem install sqlite3 json Text
 RUN apt-get dist-upgrade -yq
@@ -23,6 +25,8 @@ RUN git clone https://github.com/degauss-org/geocoder
 WORKDIR /app/geocoder
 # NOTE: switch to latest known commit
 RUN git checkout 9fab80e
+# remove existing build dir
+RUN rm -rf build
 
 RUN make -f Makefile.ruby install
 
