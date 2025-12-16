@@ -11,7 +11,7 @@ rm -f data/example_output.csv
 
 echo "Building image..."
 docker build \
-  --platform=linux/amd64 \
+  --platform linux/amd64 \
   -t degauss-foundry . 
 
 echo "Running trivy scan..."
@@ -21,5 +21,6 @@ echo "Running docker container..."
 docker run \
   --rm \
   --name degauss-foundry-container \
+  --platform linux/amd64 \
   -v "${PWD}/data:/opt/palantir/sidecars/shared-volumes/shared" \
   degauss-foundry
