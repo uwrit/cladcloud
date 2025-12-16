@@ -1,16 +1,5 @@
-# PART 1 - https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
-# compile the gem for the build
-FROM rocker/r-ver AS compiler
+FROM rocker/r-ver:4.5.1 AS compiler
 
-# copy statics
-RUN mkdir /app
-WORKDIR /app
-COPY Makefile.ruby .
-COPY /src ./src
-COPY /lib ./lib
-COPY /gemspec ./gemspec
-
-# install dependencies
 RUN apt-get update && apt-get install -y \
     bison \
     flex \
@@ -24,52 +13,44 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     ruby-full \
     sqlite3 \
+    wget \
     software-properties-common
 RUN gem install sqlite3 json Text
 RUN apt-get dist-upgrade -yq
 
-# build gem
+WORKDIR /app
+RUN git clone https://github.com/degauss-org/geocoder
+WORKDIR /app/geocoder
+# NOTE: switch to latest known commit
+RUN git checkout 9fab80e
+
 RUN make -f Makefile.ruby install
 
+FROM ruby:3.4-alpine
+COPY --from=ghcr.io/astral-sh/uv:0.9.17 /uv /uvx /bin/
+COPY --from=compiler /app/geocoder/Geocoder-US-2.0.4.gem /app/Geocoder-US-2.0.4.gem
+COPY --from=compiler /app/geocoder/geocode.rb /app/geocode.rb
 
-# PART 2
-## ADD build from initialization layer
-FROM rhub/r-minimal
+ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 
-# DeGAUSS container metadata
-ENV degauss_name="geocoder"
-ENV degauss_version="3.4.0"
-ENV degauss_description="geocodes"
-ENV degauss_argument="valid_geocode_score_threshold [default: 0.5]"
-
-# add OCI labels based on environment variables too
-LABEL "org.degauss.name"="${degauss_name}"
-LABEL "org.degauss.version"="${degauss_version}"
-LABEL "org.degauss.description"="${degauss_description}"
-LABEL "org.degauss.argument"="${degauss_argument}"
-
-# copy statics
-RUN mkdir /app
 WORKDIR /app
-COPY entrypoint.R .
-COPY geocode.rb .
-COPY --from=compiler /app/Geocoder-US-2.0.4.gem Geocoder-US-2.0.4.gem
+COPY entrypoint.py .
+COPY main.py .
+COPY main.py.lock .
+
 ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /opt/geocoder.db
 
-# install entrypoint.R dependencies
-RUN apk add py3-pip ruby
 RUN gem install Geocoder-US-2.0.4.gem
-RUN R --quiet -e "install.packages(c('digest','knitr','mappp','remotes'), repos=c(CRAN='https://packagemanager.posit.co/cran/latest'))"
-RUN R --quiet -e "remotes::install_github('degauss-org/dht')"
-RUN apk upgrade --no-cache
 
-# Foundry customizations
-COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
+RUN uv sync --locked --script /app/main.py
+
+RUN apk update && apk upgrade --no-cache
+RUN apk add --no-cache sqlite
+
 RUN adduser --uid 5001 --disabled-password user
-RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
-RUN chown -R 5001:5001 /app /opt /tmp
+
+RUN chown -R 5001:5001 /app /opt
 
 USER 5001
-ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
-WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
-ENTRYPOINT entrypoint -c "/app/entrypoint.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all"
+
+ENTRYPOINT ["uv", "run", "-q", "--script", "/app/entrypoint.py", "-c", "uv run -q --script /app/main.py"]
