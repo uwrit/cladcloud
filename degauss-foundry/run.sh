@@ -5,6 +5,7 @@ set -e
 mkdir -p data
 # copy data file
 cp ../data/florida.csv data/example.csv
+cp ../data/flag_file data/start_flag
 # remove old output
 rm -f data/example_output.csv
 
