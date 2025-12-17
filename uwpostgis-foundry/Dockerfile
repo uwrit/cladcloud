@@ -1,71 +1,72 @@
-# https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
-# Initialize the database during the build
-# PART 1
-FROM postgis/postgis:17-3.5-alpine AS db_creator
+FROM postgis/postgis:18-3.6
+COPY --from=ghcr.io/astral-sh/uv:0.9.17 /uv /uvx /bin/
 
-# copy statics
-RUN mkdir -m 777 /gisdata
-COPY ./src/alpinedb/download_national.sh .
-COPY ./src/alpinedb/download_state.sh .
-COPY ./src/alpinedb/1-load_data.sh /docker-entrypoint-initdb.d/
-
-# national data first
-# build vars
-ARG TIGER_DOMAIN
+ARG STATE
+ARG YEAR
+ARG DOMAIN
 ARG POSTGRES_DB=geocoder
-ARG POSTGRES_USER=clad_svc
-ARG POSTGRES_PASSWORD=not_on_gitlab
-ARG GEOCODER_YEAR=2020
 
-# runtime vars
-ENV TIGER_DOMAIN=${TIGER_DOMAIN}
+# expose args as env vars
+ENV DOMAIN=${DOMAIN}
+ENV STATE=${STATE}
+ENV YEAR=${YEAR}
 ENV PGDATA=/pgdata
-
-SHELL ["/bin/bash", "-c"]
-RUN apk add libintl postgis unzip wget
-RUN echo "docker_temp_server_stop && exit 0" > /docker-entrypoint-initdb.d/900-exit_before_boot.sh
-RUN ./download_national.sh
-
-# state data second
-# ARG forces build to not use cache from a previous state(s) build:
-ARG state_var
-ENV STATES=${state_var}
-RUN ./download_state.sh
-
-RUN bash -x docker-entrypoint.sh postgres
-
-
-# PART 2
-FROM postgis/postgis:17-3.5-alpine
-# not used, old, and has CVEs
-RUN rm -f /usr/local/bin/gosu
-
-# copy statics
-RUN mkdir -m 700 /pgdata
-ENV PGDATA=/pgdata
-
-RUN apk upgrade --no-cache
-RUN apk add py3-pip
-RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
-RUN python3 -m pip freeze | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --upgrade
-
-SHELL ["/bin/bash", "-c"]
-
-# Foundry customizations
-RUN adduser --uid 5001 --disabled-password user
-RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
-RUN chown 5001 /opt/palantir/sidecars/shared-volumes/shared/
+# used as volume, env var read by python csv processor
 ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 
-COPY requirements.txt /
-COPY --chmod=0755 process_csv.py /
-COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
-RUN pip install --break-system-packages --no-cache-dir -r /requirements.txt
+RUN adduser --uid 5001 --disabled-password user
 
-# copy database from db_creator
-COPY --chmod=700 --from=db_creator /pgdata /pgdata
-RUN chown -R 5001:5001 /tmp /var/run/postgresql /pgdata
+RUN apt-get update && apt-get upgrade
 
-WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
+RUN apt-get install -y \
+  wget \
+  unzip \
+  postgis
+
+COPY sql /app/sql
+COPY scripts/*.sh /app/scripts/
+RUN chmod +x /app/scripts/*.sh
+
+# give runtime user access to /app
+RUN chown -R 5001:5001 /app \
+  && chmod -R 755 /app
+
+# give postgres user access to gisdata (from sql scripts)
+# and pgdata
+RUN mkdir -p /gisdata \
+  && chown -R postgres:postgres /gisdata \
+  && chmod -R 755 /gisdata
+RUN mkdir -p "${PGDATA}" \
+  && chown -R postgres:postgres "${PGDATA}" \
+  && chmod -R 755 "${PGDATA}"
+RUN mkdir -p "${PGDATA}" \
+  && chown -R 5001:5001 "${PGDATA}" \
+  && chmod -R 755 "${PGDATA}"
+
+COPY scripts/main.py /app/main.py
+COPY scripts/main.py.lock /app/main.py.lock
+COPY scripts/entrypoint.py /app/entrypoint.py
+RUN chmod +x /app/main.py
+RUN chmod +x /app/entrypoint.py
+
+# BUG: this was needed for some reason w/ certs on clad-github-builder.rit.uw.edu
+RUN printf "check_certificate = off\n" >> /etc/wgetrc
+
+RUN uv sync --locked --script /app/main.py
+
+USER postgres 
+RUN initdb -D "$PGDATA"
+
+# start postgres, create db, seed it, and close postgres
+# NOTE: must be in one "docker" command
+RUN pg_ctl -D "$PGDATA" -o "-c listen_addresses='localhost'" -w start \
+  && createdb -O postgres geocoder \
+  && psql -d $POSTGRES_DB -f /app/sql/schemas.sql \
+  && psql -d $POSTGRES_DB -f /app/sql/extensions.sql \
+  && /app/scripts/automated.sh \
+  && pg_ctl -D "$PGDATA" -m fast stop
+
 USER 5001
-ENTRYPOINT entrypoint -c "/process_csv.py"
+
+ENTRYPOINT ["uv", "run", "-q", "--script", "/app/entrypoint.py", "-c", "uv run -q --script /app/main.py"]
+
