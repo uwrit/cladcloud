@@ -11,6 +11,7 @@ rm -f data/example_output.csv
 
 echo "Building image..."
 docker build \
+  --no-cache \
   --platform linux/amd64 \
   -t degauss-foundry . 
 
