@@ -30,7 +30,7 @@ RUN rm -rf build
 
 RUN make -f Makefile.ruby install
 
-FROM ruby:3.4-alpine
+FROM ruby:3.1-alpine
 COPY --from=ghcr.io/astral-sh/uv:0.9.17 /uv /uvx /bin/
 COPY --from=compiler /app/geocoder/Geocoder-US-2.0.4.gem /app/Geocoder-US-2.0.4.gem
 COPY --from=compiler /app/geocoder/geocode.rb /app/geocode.rb
@@ -44,12 +44,16 @@ COPY main.py.lock .
 
 ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /opt/geocoder.db
 
+RUN apk update && apk upgrade --no-cache
+RUN apk add --no-cache \
+    build-base \
+    ruby-dev \
+    sqlite-dev
+
+RUN gem install sqlite3 Text
 RUN gem install Geocoder-US-2.0.4.gem
 
 RUN uv sync --locked --script /app/main.py
-
-RUN apk update && apk upgrade --no-cache
-RUN apk add --no-cache sqlite
 
 RUN adduser --uid 5001 --disabled-password user
 
