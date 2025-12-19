@@ -15,12 +15,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # dynamic doesn't work, only static
   REPOSITORY:
   TIGER_DOMAIN: clad-github-builder.rit.uw.edu
 
 jobs:
 
-  export-build-num:
+  build-num:
     runs-on: self-hosted
 
     steps:
@@ -28,16 +29,18 @@ jobs:
       run: |
         timestamp=$( date +%Y%m%d%H%M%S )
         echo $timestamp
-        echo "BUILD_NUM=$timestamp" >> "$GITHUB_ENV"
+        echo "BUILD_NUM=$timestamp" >> "$GITHUB_OUTPUT"
     - name: print env
       run: env | sort
 
   build-degauss-foundry:
     runs-on: self-hosted
-    needs: export-build-num
+    needs: build-num
 
     steps:
     - uses: actions/checkout@v5
+    - name: import build_num
+      run: echo "BUILD_NUM=${{ needs.build-num.outputs.BUILD_NUM }}" >> "$GITHUB_ENV"
     - name: print env
       run: env | sort
     - name: Build the degauss-foundry image
@@ -57,7 +60,7 @@ jobs:
 
   setup-postgis-states:
     runs-on: self-hosted
-    needs: export-build-num
+    needs: build-num
     outputs:
       matrix: ${{ steps.matrix.outputs.value }}
 
