@@ -72,7 +72,7 @@ jobs:
 
   build-postgis-states:
     runs-on: self-hosted
-    needs: [build_num, setup-postgis-states]
+    needs: [build-num, setup-postgis-states]
     continue-on-error: true
     strategy:
       matrix:
