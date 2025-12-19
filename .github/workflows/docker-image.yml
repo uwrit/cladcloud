@@ -15,8 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # dynamic doesn't work, only static
-  BUILD_NUM: $( date +%Y%m%d%H%M%S )
   REPOSITORY:
   TIGER_DOMAIN: clad-github-builder.rit.uw.edu
 
