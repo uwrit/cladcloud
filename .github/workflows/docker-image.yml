@@ -26,8 +26,8 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - name: export BUILD_NUM to file
-      run: date +%Y%m%d%H%M%S > ~/BUILD_NUM
+    - name: export BUILD_NUM to env
+      run: echo "BUILD_NUM=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
 
   build-degauss-foundry:
@@ -36,8 +36,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - name: import BUILD_NUM from file
-      run: echo "BUILD_NUM=$(cat ~/BUILD_NUM)" >> $GITHUB_ENV
     - name: print env
       run: env | sort
     - name: Build the degauss-foundry image
@@ -52,6 +50,8 @@ jobs:
         timeout: '1h'
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
+    - name: test container
+      run: docker run --rm -v "${PWD}/test":/tmp ${{ env.container }} my_address_file.csv
 
   setup-postgis-states:
     runs-on: self-hosted
@@ -61,10 +61,8 @@ jobs:
 
     steps:
     - id: matrix
-      run: |
-        echo 'value=["ak", "al", "ar", "az", "ca", "co", "ct", "dc", "de", "fl", "ga", "hi", "ia", "id", "il", "in", "ks", "ky", "la", "ma", "md", "me", "mi", "mn", "mo", "ms", "mt", "nc", "nd", "ne", "nh", "nj", "nm", "nv", "ny", "oh", "ok", "or", "pa", "ri", "sc", "sd", "tn", "tx", "ut", "va", "vt", "wa", "wi", "wv", "wy", "pr"]' >> $GITHUB_OUTPUT
-    - run: |
-        echo "${{ steps.matrix.outputs.value }}"
+      run: echo 'value=["ak", "al", "ar", "az", "ca", "co", "ct", "dc", "de", "fl", "ga", "hi", "ia", "id", "il", "in", "ks", "ky", "la", "ma", "md", "me", "mi", "mn", "mo", "ms", "mt", "nc", "nd", "ne", "nh", "nj", "nm", "nv", "ny", "oh", "ok", "or", "pa", "ri", "sc", "sd", "tn", "tx", "ut", "va", "vt", "wa", "wi", "wv", "wy", "pr"]' >> $GITHUB_OUTPUT
+    - run: echo "${{ steps.matrix.outputs.value }}"
 
   build-postgis-states:
     runs-on: self-hosted
@@ -76,8 +74,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - name: import BUILD_NUM from file
-      run: echo "BUILD_NUM=$(cat ~/BUILD_NUM)" >> $GITHUB_ENV
     - name: print env
       run: env | sort
     - name: Build the postgis image
