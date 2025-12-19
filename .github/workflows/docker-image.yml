@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - name: export BUILD_NUM to env
-      run: echo "BUILD_NUM=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+      run: echo BUILD_NUM=$(date +%Y%m%d%H%M%S) >> $GITHUB_ENV
 
 
   build-degauss-foundry:
