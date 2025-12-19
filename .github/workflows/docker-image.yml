@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # dynamic doesn't work, only static
+  # dynamic doesn't work here, only static data
   REPOSITORY:
   TIGER_DOMAIN: clad-github-builder.rit.uw.edu
 
@@ -23,15 +23,16 @@ jobs:
 
   build-num:
     runs-on: self-hosted
+    outputs:
+      BUILD_NUM: ${{ steps.build_num.outputs.BUILD_NUM }}
 
     steps:
     - name: export BUILD_NUM to env
+      id: build_num
       run: |
         timestamp=$( date +%Y%m%d%H%M%S )
         echo $timestamp
         echo "BUILD_NUM=$timestamp" >> "$GITHUB_OUTPUT"
-    - name: print env
-      run: env | sort
 
   build-degauss-foundry:
     runs-on: self-hosted
@@ -71,7 +72,7 @@ jobs:
 
   build-postgis-states:
     runs-on: self-hosted
-    needs: setup-postgis-states
+    needs: [build_num, setup-postgis-states]
     continue-on-error: true
     strategy:
       matrix:
@@ -79,6 +80,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
+    - name: import build_num
+      run: echo "BUILD_NUM=${{ needs.build-num.outputs.BUILD_NUM }}" >> "$GITHUB_ENV"
     - name: print env
       run: env | sort
     - name: Build the postgis image
