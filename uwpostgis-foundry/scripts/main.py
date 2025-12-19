@@ -103,7 +103,7 @@ def main() -> None:
         logger.info(f"Working on {input_fpath.name}...")
         with (
             open(input_fpath, "r", encoding="utf-8") as infile,
-            open(output_fpath, "w", encoding="utf-8", newline="") as outfile,
+            open(output_fpath, "w", encoding="utf-8") as outfile,
             psycopg2.connect(dsn=PG_URI) as conn,
         ):
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
