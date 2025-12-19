@@ -16,7 +16,7 @@ concurrency:
 
 env:
   # dynamic doesn't work, only static
-  BUILD_NUM: $(date +%Y%m%d%H%M%S)
+  BUILD_NUM: $( date +%Y%m%d%H%M%S )
   REPOSITORY:
   TIGER_DOMAIN: clad-github-builder.rit.uw.edu
 
@@ -28,8 +28,11 @@ jobs:
     steps:
     - name: export BUILD_NUM to env
       run: |
-        timestamp=$(date +%Y%m%d%H%M%S)
+        timestamp=$( date +%Y%m%d%H%M%S )
+        echo $timestamp
         echo "BUILD_NUM=$timestamp" >> "$GITHUB_ENV"
+    - name: print env
+      run: env | sort
 
   build-degauss-foundry:
     runs-on: self-hosted
