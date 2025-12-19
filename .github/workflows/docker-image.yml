@@ -12,7 +12,6 @@ on:
 
 concurrency:
   group: ${{ github.head_ref || github.ref_name }}
-  cancel-in-progress: true
 
 env:
   # dynamic doesn't work here, only static data
@@ -29,10 +28,7 @@ jobs:
     steps:
     - name: export BUILD_NUM to env
       id: build_num
-      run: |
-        timestamp=$( date +%Y%m%d%H%M%S )
-        echo $timestamp
-        echo "BUILD_NUM=$timestamp" >> "$GITHUB_OUTPUT"
+      run: echo "BUILD_NUM=$(date +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
 
   build-degauss-foundry:
     runs-on: self-hosted
