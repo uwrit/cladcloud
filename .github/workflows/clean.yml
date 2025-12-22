@@ -1,4 +1,4 @@
-name: Fastbuild postgis images
+name: clean docker images
 
 on:
   schedule:
