@@ -3,6 +3,8 @@
 Pulling from here:  https://github.com/degauss-org/geocoder/tree/master
 
 
+> this now can be built and tested against an example with `./run.sh`
+
 Core Steps:
 
 - Transitioning to Alpine Linux
