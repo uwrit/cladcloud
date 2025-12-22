@@ -18,6 +18,9 @@ def run_process(exe):
     return iter(p.stdout.readline, b"")
 
 
+## CLAD customization - start postgres as 5001 user.
+subprocess.run(["pg_ctl", "start"])
+
 start_flag_fname = "/opt/palantir/sidecars/shared-volumes/shared/start_flag"
 done_flag_fname = "/opt/palantir/sidecars/shared-volumes/shared/done_flag"
 close_flag_fname = "/opt/palantir/sidecars/shared-volumes/shared/close_flag"

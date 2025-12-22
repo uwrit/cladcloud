@@ -1,1 +1,1 @@
-Alpine Images for the CLAD geocoder cloud.
+Docker images for the CLAD geocoder cloud.
