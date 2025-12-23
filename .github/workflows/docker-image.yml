@@ -53,7 +53,7 @@ jobs:
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
     - name: test container
-      run: docker run --rm -v "${PWD}/test":/tmp ${{ env.container }} my_address_file.csv
+      run: docker run --rm -v "test":/tmp ${{ env.container }} my_address_file.csv
 
   setup-postgis-states:
     runs-on: self-hosted
