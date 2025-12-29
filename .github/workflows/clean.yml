@@ -19,3 +19,9 @@ jobs:
     - name: Delete docker volumes not included in system prune
       run: docker volume prune -af
       # run: docker buildx prune -a --verbose
+    - name: Clean containerd folders and restart services
+      run: service docker stop && service containerd stop && rm -rf /home/containerd/* && service containerd start && service docker start
+    - name: Clear docker cache again
+      run: docker system prune -af --volumes
+    - name: Delete docker volumes not included in system prune again
+      run: docker volume prune -af
