@@ -53,7 +53,7 @@ jobs:
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
     - name: test container
-      run: docker run --rm -v "./test":/opt/palantir/sidecars/shared-volumes/shared --entrypoint "/app/entrypoint.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all" genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
+      run: cp test/* /dev/shm/ && docker run --rm -v "/dev/shm":/opt/palantir/sidecars/shared-volumes/shared --entrypoint /app/entrypoint.R genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }} /opt/palantir/sidecars/shared-volumes/shared/infile.csv all
 
   setup-postgis-states:
     runs-on: self-hosted
