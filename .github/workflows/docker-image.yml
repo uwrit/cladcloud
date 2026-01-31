@@ -30,7 +30,7 @@ jobs:
       id: build_num
       run: echo "BUILD_NUM=$(date +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
 
-  build-degauss-foundry:
+  build-degauss:
     runs-on: self-hosted
     needs: build-num
 
@@ -40,12 +40,12 @@ jobs:
       run: echo "BUILD_NUM=${{ needs.build-num.outputs.BUILD_NUM }}" >> "$GITHUB_ENV"
     - name: print env
       run: env | sort
-    - name: Build the degauss-foundry image
-      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss-foundry --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/degauss-foundry:${{ env.BUILD_NUM }}
+    - name: Build the degauss image
+      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.33.1
       with:
-        image-ref: genoa-container-registry.washington.palantircloud.com/degauss-foundry:${{ env.BUILD_NUM }}
+        image-ref: genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
@@ -53,7 +53,7 @@ jobs:
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
     - name: test container
-      run: docker run --rm -v "./test":/opt/palantir/sidecars/shared-volumes/shared --entrypoint "/app/entrypoint.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all" genoa-container-registry.washington.palantircloud.com/degauss-foundry:${{ env.BUILD_NUM }}
+      run: docker run --rm -v "./test":/opt/palantir/sidecars/shared-volumes/shared --entrypoint "/app/entrypoint.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all" genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
 
   setup-postgis-states:
     runs-on: self-hosted
@@ -81,7 +81,7 @@ jobs:
     - name: print env
       run: env | sort
     - name: Build the postgis image
-      run: docker build --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg TIGER_DOMAIN=clad-github-builder.rit.uw.edu --build-arg state_var=${{ matrix.value }} uwpostgis-foundry --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
+      run: docker build --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg TIGER_DOMAIN=clad-github-builder.rit.uw.edu --build-arg state_var=${{ matrix.value }} uwpostgis --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.33.1
       with:

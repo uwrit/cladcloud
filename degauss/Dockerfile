@@ -57,11 +57,11 @@ COPY --from=compiler /app/Geocoder-US-2.0.4.gem Geocoder-US-2.0.4.gem
 ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /opt/geocoder.db
 
 # install entrypoint.R dependencies
-RUN apk add py3-pip ruby
+RUN apk --no-cache add py3-pip ruby build-base linux-headers
 RUN gem install Geocoder-US-2.0.4.gem
-RUN R --quiet -e "install.packages(c('digest','knitr','mappp','remotes'), repos=c(CRAN='https://packagemanager.posit.co/cran/latest'))"
+RUN apk --no-cache upgrade
+RUN R --quiet -e "install.packages(c('digest','docopt','jsonlite','knitr','mappp','remotes'), repos=c(CRAN='https://packagemanager.posit.co/cran/latest'))"
 RUN R --quiet -e "remotes::install_github('degauss-org/dht')"
-RUN apk upgrade --no-cache
 
 # Foundry customizations
 COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
