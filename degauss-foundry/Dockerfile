@@ -51,7 +51,7 @@ LABEL "org.degauss.argument"="${degauss_argument}"
 # copy statics
 RUN mkdir /app
 WORKDIR /app
-COPY entrypoint.R .
+COPY --chmod=755 entrypoint.R .
 COPY geocode.rb .
 COPY --from=compiler /app/Geocoder-US-2.0.4.gem Geocoder-US-2.0.4.gem
 ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /opt/geocoder.db
