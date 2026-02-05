@@ -125,15 +125,20 @@ out_file <- dplyr::bind_rows(d_excluded_for_address, d_for_geocoding) %>%
   select(-po_box, -cincy_inst_foster_addr, -non_address_text) # note, just "PO" not "PO BOX" is not flagged as "po_box"
 }
 
+## delete any outfile*
+unlink(Sys.glob("outfile*"))
+
 ## write out file
 dht::write_geomarker_file(
   out_file,
-  filename = "outfile.csv"
+  filename = "outfile.csv",
+  geomarker_name = "", # replaces "_geocoder" with just "_"
+  version = "" # replaces "_x.x.x.x" with just "_"
   #,argument = glue::glue("score_threshold_{opt$score_threshold}")
 )
 
 ## rename output file
-file.rename(list.files(pattern="outfile*.csv"), "outfile.csv")
+file.rename("outfile__.csv", "outfile.csv")
 
 ## summarize geocoding results and
 ## print geocoding results summary to console
