@@ -132,6 +132,9 @@ dht::write_geomarker_file(
   #,argument = glue::glue("score_threshold_{opt$score_threshold}")
 )
 
+## rename output file
+file.rename(list.files(pattern="outfile*.csv"), "outfile.csv")
+
 ## summarize geocoding results and
 ## print geocoding results summary to console
 if (opt$score_threshold != "all") {

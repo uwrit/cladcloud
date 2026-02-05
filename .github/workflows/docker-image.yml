@@ -92,3 +92,5 @@ jobs:
         timeout: '1h'
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
+    - name: test container
+      run: cp test/* /dev/shm/ && docker run --rm -v "/dev/shm":/opt/palantir/sidecars/shared-volumes/shared --entrypoint /process_csv.py genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }} /opt/palantir/sidecars/shared-volumes/shared/infile.csv
