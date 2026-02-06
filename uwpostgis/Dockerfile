@@ -65,6 +65,8 @@ RUN pip install --break-system-packages --no-cache-dir -r /requirements.txt
 # copy database from db_creator
 COPY --chmod=700 --from=db_creator /pgdata /pgdata
 RUN chown -R 5001:5001 /tmp /var/run/postgresql /pgdata
+ARG state_var
+RUN echo "$state_var" > /pgdata/states
 
 WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
 USER 5001
