@@ -319,7 +319,7 @@ def analyze_outputs(source_df: pl.DataFrame) -> pl.DataFrame:
     rdf = df.group_by(["container", "state"]).agg(
         [pl.col("distance").mean().alias("avg_dist_meters")]
     )
-    print(df.group_by(["container"]).agg([pl.col("distance").alias("avg_dist_meters")]))
+    print(df.group_by(["container"]).agg([pl.col("distance").mean().alias("avg_dist_meters")]))
     rdf.write_csv(Path().cwd() / "data" / "outputs" / "_distance_metrics.csv")
     return rdf
 
@@ -330,7 +330,7 @@ def main() -> None:
     print(f"State keys: {list(state_map.keys())}")
     logging.info(f"Using: {len(state_map)} states...")
 
-    output_path = Path().cwd() / "data" / "results.csv"
+    output_path = Path().cwd() / "data" / "results.jsonl"
     with open(output_path, "w") as f:
         f.truncate()
 
@@ -338,7 +338,6 @@ def main() -> None:
     degauss_name = "degauss-global"
     degauss_build_time = build_degauss(name=degauss_name)
 
-    # TODO: log these
     logging.info("Checking degauss...")
     trivy_status, trivy_time = trivy_check(image_name=degauss_name)
     docker_scout_status, docker_scout_time = docker_scout_check(image_name=degauss_name)
@@ -349,7 +348,7 @@ def main() -> None:
     i = 0
     for state, df in tqdm(state_map.items(), desc="States...", leave=False):
         i += 1
-        if i > 5:
+        if i > 3:
             break
         logging.info(f"====={state}=====")
         print(f"====={state}=====")
@@ -380,14 +379,13 @@ def main() -> None:
         logging.info(f"Building {postgis_name} image...")
         duration = build_postgis(name=postgis_name, state=lower_state)
 
-        # TODO: log these
         logging.info("Checking postgis...")
-        trivy_status, trivy_time = trivy_check(image_name=degauss_name)
+        trivy_status, trivy_time = trivy_check(image_name=postgis_name)
         docker_scout_status, docker_scout_time = docker_scout_check(
-            image_name=degauss_name
+            image_name=postgis_name
         )
         docker_scout_rec_status, docker_scout_rec_time = docker_scout_recs(
-            image_name=degauss_name
+            image_name=postgis_name
         )
 
         postgis_run_time = run_postgis(image_name=postgis_name, state=state)
