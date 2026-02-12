@@ -1,75 +1,64 @@
-# PART 1 - https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
-# compile the gem for the build
-FROM rocker/r-ver AS compiler
+FROM debian:trixie-20260202-slim AS builder
 
-# copy statics
-RUN mkdir /app
-WORKDIR /app
-COPY Makefile.ruby .
-COPY /src ./src
-COPY /lib ./lib
-COPY /gemspec ./gemspec
-
-# install dependencies
 RUN apt-get update && apt-get install -y \
-    bison \
-    flex \
-    gnupg \
-    libcurl4-openssl-dev \
-    libsqlite3-dev \
-    libssh2-1-dev \
-    libssl-dev \
-    libxml2-dev \
     make \
-    pkg-config \
-    ruby-full \
     sqlite3 \
-    software-properties-common
+    libsqlite3-dev \
+    flex \
+    bison \
+    pkg-config \
+    ruby \
+    ruby-dev \
+    git \
+    && apt-get clean
+
 RUN gem install sqlite3 json Text
-RUN apt-get dist-upgrade -yq
 
-# build gem
-RUN make -f Makefile.ruby install
+WORKDIR /build
+
+RUN git clone https://github.com/beusj/geocoder.git
+
+WORKDIR /build/geocoder
+
+# remove existing build files
+RUN rm -rf /build/build
+
+# NOTE: CFLAGS reduces complier strictness to that of ruby 2.x
+RUN CFLAGS="-Wno-implicit-function-declaration" make -f Makefile.ruby install \
+    && gem install Geocoder-US-2.0.4.gem
 
 
-# PART 2
-## ADD build from initialization layer
-FROM rhub/r-minimal
+FROM ruby:4.0-alpine AS runtime
+COPY --from=builder /var/lib/gems/3.3.0/gems /usr/local/lib/ruby/gems/4.0.0/gems
+COPY --from=builder /build/geocoder/geocode.rb /app/geocode.rb
+COPY --from=ghcr.io/astral-sh/uv:0.10.2 /uv /uvx /bin/
 
-# DeGAUSS container metadata
-ENV degauss_name="geocoder"
-ENV degauss_version="3.4.0"
-ENV degauss_description="geocodes"
-ENV degauss_argument="valid_geocode_score_threshold [default: 0.5]"
+ARG PYTHON_VERSION=3.14
+RUN uv python install ${PYTHON_VERSION}
+RUN export PATH=$PATH:/root/.local/bin
 
-# add OCI labels based on environment variables too
-LABEL "org.degauss.name"="${degauss_name}"
-LABEL "org.degauss.version"="${degauss_version}"
-LABEL "org.degauss.description"="${degauss_description}"
-LABEL "org.degauss.argument"="${degauss_argument}"
+# TODO: change this to clad-builder VM
+ARG GEOCODER_LOCATION=http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.gb
+ADD ${GEOCODER_LOCATION} /opt/geocoder.db
 
-# copy statics
-RUN mkdir /app
+# FIX: this sucks just to use `-S` in our `uv` shebang
+RUN apk add --no-cache coreutils bash
+
 WORKDIR /app
-COPY --chmod=755 entrypoint.R .
-COPY geocode.rb .
-COPY --from=compiler /app/Geocoder-US-2.0.4.gem Geocoder-US-2.0.4.gem
-ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /opt/geocoder.db
 
-# install entrypoint.R dependencies
-RUN apk --no-cache add py3-pip ruby build-base linux-headers
-RUN gem install Geocoder-US-2.0.4.gem
-RUN apk --no-cache upgrade
-RUN R --quiet -e "install.packages(c('digest','docopt','jsonlite','knitr','mappp','remotes'), repos=c(CRAN='https://packagemanager.posit.co/cran/latest'))"
-RUN R --quiet -e "remotes::install_github('degauss-org/dht')"
+COPY --chmod=0755 ./process_csv.py .
+COPY --chmod=0755 ./entrypoint.py .
 
-# Foundry customizations
-COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
 RUN adduser --uid 5001 --disabled-password user
-RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
-RUN chown -R 5001:5001 /app /opt /tmp
+
+ARG SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
+
+RUN mkdir -p ${SHARED_DIR}
+
+RUN chown -R 5001:5001 /app /opt
 
 USER 5001
-ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
-WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
-ENTRYPOINT ["entrypoint", "-c", "/app/entrypoint.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all"]
+
+ENTRYPOINT ["bash"]
+
+# ENTRYPOINT ["/app/entrypoint.py", "-c", "/app/process_csv.py"]

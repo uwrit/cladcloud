@@ -1,21 +1,22 @@
-#!/usr/bin/env python3
-
-import os
-import time
-import subprocess
-from datetime import datetime
+#!/usr/bin/env -S uv run --script
 
 import argparse
+import os
+import subprocess
+import time
+from datetime import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--command", type=str, help="model command to execute")
 args = parser.parse_args()
 the_command = args.command.split(" ")
 
+
 def run_process(exe):
     "Define a function for running commands and capturing stdout line by line"
     p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     return iter(p.stdout.readline, b"")
+
 
 start_flag_fname = "/opt/palantir/sidecars/shared-volumes/shared/start_flag"
 done_flag_fname = "/opt/palantir/sidecars/shared-volumes/shared/done_flag"
