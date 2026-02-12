@@ -285,6 +285,7 @@ def docker_scout_recs(image_name: str) -> tuple[bool, float]:
 
 def analyze_measurements(fpath: Path) -> pl.DataFrame:
     df = pl.read_ndjson(fpath)
+    df.write_csv(Path().cwd() / "data" / "measurements.csv")
     # drop state
     rdf = df.group_by("container").agg(
         [
@@ -330,11 +331,16 @@ def analyze_outputs(source_df: pl.DataFrame) -> pl.DataFrame:
 
     logging.info(f"Skipped {none_skips} `None`-like types")
     df = pl.DataFrame(results)
+    df.write_csv(Path().cwd() / "data" / "outputs.csv")
     rdf = df.group_by(["container", "state"]).agg(
         [pl.col("distance").mean().alias("avg_dist_meters")]
     )
-    print(df.group_by(["container"]).agg([pl.col("distance").mean().alias("avg_dist_meters")]))
-    rdf.write_csv(Path().cwd() / "data" / "outputs" / "_distance_metrics.csv")
+    print(
+        df.group_by(["container"]).agg(
+            [pl.col("distance").mean().alias("avg_dist_meters")]
+        )
+    )
+    rdf.write_csv(Path().cwd() / "data" / "outputs" / "distance_metrics.csv")
     return rdf
 
 
