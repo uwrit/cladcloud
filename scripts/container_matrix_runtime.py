@@ -354,15 +354,25 @@ def main() -> None:
     with open(output_path, "w") as f:
         f.truncate()
 
+    (Path().cwd() / "data" / "container-data").mkdir(exist_ok=True)
+    (Path().cwd() / "data" / "outputs").mkdir(exist_ok=True)
+
     logging.info("Building degauss ONCE...")
     degauss_name = "degauss-global"
     degauss_build_time = build_degauss(name=degauss_name)
 
     logging.info("Checking degauss...")
     trivy_status, trivy_time = trivy_check(image_name=degauss_name)
+    logging.info(f"Trivy status: {trivy_status} | Trivy time: {trivy_time}")
     docker_scout_status, docker_scout_time = docker_scout_check(image_name=degauss_name)
+    logging.info(
+        f"Docker Scout status: {docker_scout_status} | Docker Scout time: {docker_scout_time}"
+    )
     docker_scout_rec_status, docker_scout_rec_time = docker_scout_recs(
         image_name=degauss_name
+    )
+    logging.info(
+        f"Docker Scout (REC) status: {docker_scout_rec_status} | Docker Scout (REC) time: {docker_scout_rec_time}"
     )
 
     i = 0
@@ -378,6 +388,8 @@ def main() -> None:
         relative_path = state_fpath.relative_to(Path().cwd())
         logging.info(f"Dumping state datafile to: {relative_path}")
         df.write_csv(state_fpath)
+
+        setup_container_folder(fpath=Path().cwd() / "data" / "container-data")
 
         # copy file to expected name
         shutil.copy2(state_fpath, state_fpath.parent / "container-data" / "infile.csv")
@@ -401,11 +413,18 @@ def main() -> None:
 
         logging.info("Checking postgis...")
         trivy_status, trivy_time = trivy_check(image_name=postgis_name)
+        logging.info(f"Trivy status: {trivy_status} | Trivy time: {trivy_time}")
         docker_scout_status, docker_scout_time = docker_scout_check(
             image_name=postgis_name
         )
+        logging.info(
+            f"Docker Scout status: {docker_scout_status} | Docker Scout time: {docker_scout_time}"
+        )
         docker_scout_rec_status, docker_scout_rec_time = docker_scout_recs(
             image_name=postgis_name
+        )
+        logging.info(
+            f"Docker Scout (REC) status: {docker_scout_rec_status} | Docker Scout (REC) time: {docker_scout_rec_time}"
         )
 
         postgis_run_time = run_postgis(image_name=postgis_name, state=state)
@@ -425,9 +444,9 @@ def main() -> None:
         logging.info(f"Removing state datafile from: {relative_path}")
         state_fpath.unlink()
 
-        # clean dir data files (this is the remaining `infile.csv`)
-        for f in (Path().cwd() / "data" / "container-data").glob("*.csv"):
-            f.unlink()
+        # cleanup
+        for p in (Path().cwd() / "data" / "container-data").glob("*"):
+            p.unlink()
 
     logging.info("Starting cleanup...")
 
