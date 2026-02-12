@@ -445,8 +445,7 @@ def main() -> None:
         state_fpath.unlink()
 
         # cleanup
-        for p in (Path().cwd() / "data" / "container-data").glob("*"):
-            p.unlink()
+        shutil.rmtree(Path().cwd() / "data" / "container-data")
 
     logging.info("Starting cleanup...")
 
