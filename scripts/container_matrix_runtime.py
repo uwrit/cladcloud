@@ -83,6 +83,19 @@ def load_data() -> dict[str, pl.DataFrame]:
     return state_map
 
 
+def setup_container_folder(fpath: Path) -> None:
+    fpath.mkdir(exist_ok=True)
+    shutil.copy(
+        Path().cwd() / "flag_file",
+        fpath / "start_flag",
+    )
+    shutil.copy(
+        Path().cwd() / "flag_file",
+        fpath / "close_flag",
+    )
+    return
+
+
 def build_degauss(name: str) -> float:
     start = time.time()
     result = subprocess.run(
