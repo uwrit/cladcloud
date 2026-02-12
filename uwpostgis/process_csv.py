@@ -151,7 +151,7 @@ if __name__ == "__main__":
         results = []
         if progress_style == 'minimal':
             # Minimal: Just a simple progress bar
-            with tqdm(total=len(work_items), ncols=30, desc="Processing", unit="addr") as pbar:
+            with tqdm(total=len(work_items), ncols=200, desc="Processing", unit="addr") as pbar:
                 for result in pool.imap_unordered(geocode_address, work_items, chunksize=batch_size):
                     results.append(result)
                     if result.get('status') == 'success':
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
         elif progress_style == 'simple':
             # Simple: Progress bar with success count
-            with tqdm(total=len(work_items), ncols=30, desc="Geocoding", unit="addr",
+            with tqdm(total=len(work_items), ncols=200, desc="Geocoding", unit="addr",
                       bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]') as pbar:
                 for result in pool.imap_unordered(geocode_address, work_items, chunksize=batch_size):
                     results.append(result)
@@ -176,11 +176,11 @@ if __name__ == "__main__":
 
         else:  # 'detailed'
             # Detailed: Multiple progress bars with comprehensive stats
-            main_pbar = tqdm(total=len(work_items), ncols=30, desc="Overall Progress", position=0, unit="addr",
+            main_pbar = tqdm(total=len(work_items), ncols=200, desc="Overall Progress", position=0, unit="addr",
                            bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]')
-            success_pbar = tqdm(total=len(work_items), ncols=30, desc="✓ Successful    ", position=1,
+            success_pbar = tqdm(total=len(work_items), ncols=200, desc="✓ Successful    ", position=1,
                               bar_format='{desc}: {n_fmt} ({percentage:3.0f}%)', colour='green')
-            failed_pbar = tqdm(total=len(work_items), ncols=30, desc="✗ Failed        ", position=2,
+            failed_pbar = tqdm(total=len(work_items), ncols=200, desc="✗ Failed        ", position=2,
                              bar_format='{desc}: {n_fmt} ({percentage:3.0f}%)', colour='red')
             try:
                 for result in pool.imap_unordered(geocode_address, work_items, chunksize=batch_size):
@@ -224,7 +224,7 @@ if __name__ == "__main__":
 
     # Update dataframe with results
     print("\n\nUpdating dataframe...")
-    with tqdm(results, desc="Writing results", ncols=30, unit="row", leave=False) as pbar:
+    with tqdm(results, desc="Writing results", ncols=200, unit="row", leave=False) as pbar:
         for result in pbar:
             idx = result['index']
             for key, value in result.items():
