@@ -233,7 +233,7 @@ def run_postgis(
     return duration
 
 
-def trivy_check(image_name: str) -> tuple[bool, float]:
+def trivy_check(image_name: str, fail: bool = False) -> tuple[bool, float]:
     start = time.time()
     result = subprocess.run(
         [
@@ -243,13 +243,14 @@ def trivy_check(image_name: str) -> tuple[bool, float]:
             "--exit-code=1",
             image_name,
         ],
+        check=fail,
     )
     end = time.time()
     duration = end - start
     return result.returncode == 0, duration
 
 
-def docker_scout_check(image_name: str) -> tuple[bool, float]:
+def docker_scout_check(image_name: str, fail: bool = False) -> tuple[bool, float]:
     start = time.time()
     result = subprocess.run(
         [
@@ -260,6 +261,7 @@ def docker_scout_check(image_name: str) -> tuple[bool, float]:
             "--exit-code",
             image_name,
         ],
+        check=fail,
     )
     end = time.time()
     duration = end - start
