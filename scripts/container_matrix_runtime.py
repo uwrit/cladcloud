@@ -375,11 +375,7 @@ def main() -> None:
         f"Docker Scout (REC) status: {docker_scout_rec_status} | Docker Scout (REC) time: {docker_scout_rec_time}"
     )
 
-    i = 0
     for state, df in tqdm(state_map.items(), desc="States...", leave=False):
-        i += 1
-        if i > 3:
-            break
         logging.info(f"====={state}=====")
         print(f"====={state}=====")
 
