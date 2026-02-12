@@ -70,4 +70,4 @@ RUN echo "$state_var" > /pgdata/states
 
 WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
 USER 5001
-ENTRYPOINT entrypoint -c "/process_csv.py"
+ENTRYPOINT ["entrypoint", "-c", "/process_csv.py"]

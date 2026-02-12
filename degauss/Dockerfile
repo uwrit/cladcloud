@@ -72,4 +72,4 @@ RUN chown -R 5001:5001 /app /opt /tmp
 USER 5001
 ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
-ENTRYPOINT entrypoint -c "/app/entrypoint.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all"
+ENTRYPOINT ["entrypoint", "-c", "/app/entrypoint.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all"]
