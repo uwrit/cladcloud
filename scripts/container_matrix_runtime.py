@@ -300,7 +300,7 @@ def analyze_outputs(source_df: pl.DataFrame) -> pl.DataFrame:
     results: list[dict[str, int | float | str]] = []
     none_skips = 0
     for p in paths:
-        path_parts = p.name.split("-")
+        path_parts = p.stem.split("-")
         container = path_parts[0]
         state = path_parts[-1]
         data = (
