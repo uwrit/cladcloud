@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-import os
-import time
-import subprocess
-from datetime import datetime
-
 import argparse
+import os
+import subprocess
+import time
+from datetime import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--command", type=str, help="model command to execute")
@@ -13,7 +12,7 @@ args = parser.parse_args()
 the_command = args.command.split(" ")
 
 def stamp(message):
-    return f"{datetime.datetime.now(datetime.UTC).isoformat()}: {message}"
+    return f"{datetime.now(datetime.UTC).isoformat()}: {message}"
 def run_process(exe):
     "Define a function for running commands and capturing stdout line by line"
     p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
