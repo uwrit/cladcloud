@@ -35,8 +35,7 @@ logging.basicConfig(
 
 
 def load_source_df() -> pl.DataFrame:
-    # url = "https://raw.githubusercontent.com/brian-cy-chang/UW_Geospatial/refs/heads/main/output/OMOP_sample.csv"
-    url = Path().cwd() / "data" / "full_addresses.csv"
+    url = "https://raw.githubusercontent.com/brian-cy-chang/UW_Geospatial/refs/heads/main/output/OMOP_sample.csv"
     df = (
         pl.read_csv(url)
         .select(
