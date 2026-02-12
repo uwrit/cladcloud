@@ -111,7 +111,7 @@ def build_degauss(name: str) -> float:
             # this is the context/folder to build in which is set below with cwd
             ".",
         ],
-        cwd="degauss-foundry",
+        cwd="degauss",
         check=True,
     )
     end = time.time()
@@ -141,7 +141,7 @@ def build_postgis(name: str, state: str) -> float:
             # this is the context/folder to build in which is set below with cwd
             ".",
         ],
-        cwd="uwpostgis-foundry",
+        cwd="uwpostgis",
         check=True,
     )
     logging.info(f"POSTGIS CMD={' '.join(result.args)}")
