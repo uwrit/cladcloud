@@ -57,7 +57,7 @@ RUN chown 5001 /opt/palantir/sidecars/shared-volumes/shared/
 ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 
 COPY --chmod=0755 process_csv.py /
-COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
+COPY --chmod=0755 ../palantir.py /usr/bin/entrypoint
 
 # copy database from db_creator
 COPY --chmod=700 --from=db_creator /pgdata /pgdata

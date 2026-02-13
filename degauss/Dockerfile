@@ -64,7 +64,7 @@ RUN R --quiet -e "install.packages(c('digest','docopt','jsonlite','knitr','mappp
 RUN R --quiet -e "remotes::install_github('degauss-org/dht')"
 
 # Foundry customizations
-COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
+COPY --chmod=0755 ../palantir.py /usr/bin/entrypoint
 RUN adduser --uid 5001 --disabled-password user
 RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
 RUN chown -R 5001:5001 /app /opt /tmp
