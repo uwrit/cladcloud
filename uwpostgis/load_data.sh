@@ -56,7 +56,7 @@ fix_and_run ${GISDATA}/data_load.sh
 IFS=',' read -ra GEO_STATES <<< "${STATES^^}"
 for state in "${GEO_STATES[@]}";
 do
-    echo "      Loading '$state' st data"
+    echo "      Loading '$state' state data"
     ${PSQL} "SELECT loader_generate_script(ARRAY['${state}'], 'sh');" > ${GISDATA}/data_load.sh
     fix_and_run ${GISDATA}/data_load.sh
 
