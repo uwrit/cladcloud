@@ -1,14 +1,15 @@
 name: Build Docker Images
 
 on:
-  push:
+  pull_request:
     branches:
     - "main"
-  pull_request:
+  push:
     branches:
     - "main"
   schedule:
     - cron: "0 21 * * 0"
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.head_ref || github.ref_name }}
@@ -41,7 +42,7 @@ jobs:
     - name: print env
       run: env | sort
     - name: Build the degauss image
-      run: docker build --load --cpu-quota $(( $(nproc --all)*100000 )) degauss --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
+      run: docker build --output type=image,compression=zstd,oci-mediatypes=true --load --cpu-quota $(( $(nproc --all)*100000 )) degauss --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.33.1
       with:
@@ -63,7 +64,7 @@ jobs:
 
     steps:
     - id: matrix
-      run: echo 'value=["ak", "al", "ar", "az", "ca", "co", "ct", "dc", "de", "fl", "ga", "hi", "ia", "id", "il", "in", "ks", "ky", "la", "ma", "md", "me", "mi", "mn", "mo", "ms", "mt", "nc", "nd", "ne", "nh", "nj", "nm", "nv", "ny", "oh", "ok", "or", "pa", "ri", "sc", "sd", "tn", "tx", "ut", "va", "vt", "wa", "wi", "wv", "wy", "pr"]' >> $GITHUB_OUTPUT
+      run: echo 'value=["ak", "al", "ar", "as", "az", "ca", "co", "ct", "dc", "de", "fl", "fm", "ga", "gu", "hi", "ia", "id", "il", "in", "ks", "ky", "la", "ma", "md", "me", "mh", "mi", "mn", "mo", "ms", "mt", "nc", "nd", "ne", "nh", "nj", "nm", "nv", "ny", "oh", "ok", "or", "pa", "pr", "pw", "ri", "sc", "sd", "tn", "tx", "ut", "va", "vi", "vt", "wa", "wi", "wv", "wy"]' >> $GITHUB_OUTPUT
     - run: echo "${{ steps.matrix.outputs.value }}"
 
   build-postgis-states:
@@ -81,7 +82,7 @@ jobs:
     - name: print env
       run: env | sort
     - name: Build the postgis image
-      run: docker build --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg TIGER_DOMAIN=clad-github-builder.rit.uw.edu --build-arg state_var=${{ matrix.value }} uwpostgis --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
+      run: docker build --output type=image,compression=zstd,oci-mediatypes=true --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg TIGER_DOMAIN=clad-github-builder.rit.uw.edu --build-arg state_var=${{ matrix.value }} uwpostgis --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@0.33.1
       with:

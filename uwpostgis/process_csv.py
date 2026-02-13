@@ -14,7 +14,7 @@ warnings.filterwarnings('ignore')
 # database connection configuration
 DB_CONFIG = {
     'dbname': 'geocoder',
-    'user': 'clad_svc',
+    'user': 'postgres',
     'password': 'not_on_gitlab',
     'host': 'localhost',
     'port': 5432
@@ -47,20 +47,23 @@ def geocode_address(args):
         if not address or pandas.isna(address) or str(address).strip() == '':
             return {'index': idx, 'status': 'empty'}
 
-        string_to_geocode = '''
+        sql_query = '''
             SELECT
                 g.rating
-            , ST_AsText(ST_SnapToGrid(g.geomout,0.00001)) As wktlonlat
-            , (addy).address As stno
-            , (addy).streetname As street
-            , (addy).streettypeabbrev As styp
-            , (addy).location As city
-            , (addy).stateabbrev As st
-            , (addy).zip FROM geocode(%s) As g;'''
+                , ST_AsText(ST_SnapToGrid(g.geomout,0.00001)) As wktlonlat
+                , (addy).address AS street_num
+                , (addy).streetname AS street_name
+                , (addy).streettypeabbrev AS street_type
+                , (addy).location AS city
+                , (addy).stateabbrev AS state
+                , (addy).zip
+            FROM geocode(%s) AS g
+            ORDER BY g.rating DESC
+            LIMIT 1;'''
 
         # Use parameterized query
         try:
-            all_results = pandas.read_sql(string_to_geocode, worker_connection, params=(address,))
+            all_results = pandas.read_sql(sql_query, worker_connection, params=(address,))
         except psycopg.Error:
             try:
                 worker_connection.rollback()
@@ -80,12 +83,14 @@ def geocode_address(args):
                     return {
                         'index': idx,
                         'rating': temp_results['rating'].iloc[0],
-                        'stno': temp_results['stno'].iloc[0],
-                        'street': temp_results['street'].iloc[0],
-                        'styp': temp_results['styp'].iloc[0],
+                        'street_num': temp_results['street_num'].iloc[0],
+                        'street_name': temp_results['street_name'].iloc[0],
+                        'street_type': temp_results['street_type'].iloc[0],
                         'city': temp_results['city'].iloc[0],
-                        'st': temp_results['st'].iloc[0],
+                        'state': temp_results['state'].iloc[0],
                         'zip': temp_results['zip'].iloc[0],
+                        # 'lat': temp_results['lat'].iloc[0],
+                        # 'lon': temp_results['lon'].iloc[0],
                         'lat': float(latlong[1]) if len(latlong) > 1 else None,
                         'lon': float(latlong[0]) if len(latlong) > 0 else None,
                         'status': 'success'
@@ -132,7 +137,7 @@ if __name__ == "__main__":
     print(f"Reading in {import_csv}")
     address_df = pandas.read_csv(import_csv)
     # Prepare output columns
-    address_df[['rating', 'stno', 'street', 'styp', 'city', 'st', 'zip', 'lat', 'lon']] = None
+    address_df[['rating', 'street_num', 'street_name', 'street_type', 'city', 'state', 'zip', 'lat', 'lon']] = None
     # print(f"Total addresses to process: {len(address_df)}")
 
     # Prepare work items
