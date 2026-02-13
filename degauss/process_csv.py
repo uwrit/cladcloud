@@ -21,6 +21,8 @@ if WORKERS is None:
 
 NEW_COLS = [
     "street",
+    "street1",
+    "street2",
     "zip",
     "city",
     "state",
