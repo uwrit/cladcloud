@@ -8,15 +8,22 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
+import warnings
 
-log_format = "%(levelname)s - %(message)s"
-logging.basicConfig(level=logging.INFO, format=log_format)
-logger = logging.getLogger(__file__)
+
+def init_logging() -> logging.Logger:
+    log_format = "%(levelname)s - %(message)s"
+    logging.basicConfig(level=logging.INFO, format=log_format)
+    logger = logging.getLogger(__file__)
+    return logger
+
+
+LOGGER = init_logging()
 
 SHARED_DIR = Path("/opt/palantir/sidecars/shared-volumes/shared")
 WORKERS = os.getenv("WORKERS", None)
 if WORKERS is None:
-    logger.warning("WORKERS env var not found, defaulting to 4")
+    warnings.warn("`WORKERS` env var not found, defaulting to 4")
     WORKERS = 4
 
 NEW_COLS = [
@@ -34,6 +41,7 @@ NEW_COLS = [
     "number",
     "precision",
 ]
+
 
 
 def geocode(address: str) -> dict[str, Any] | None:
@@ -56,13 +64,13 @@ def geocode(address: str) -> dict[str, Any] | None:
                 reverse=True,
             )
             best_result = ordered_results[0]
-            logger.info(f"Succesfully processed: {address}")
+            LOGGER.info(f"Successfully processed: {address}")
             return best_result
         else:
-            logger.info(f"Resulted in no result: {address}")
+            LOGGER.info(f"Resulted in no result: {address}")
             return None
     except Exception as e:
-        logger.error(f"Something went wrong: {e}")
+        LOGGER.error(f"Something went wrong: {e}")
         return None
 
 
@@ -79,7 +87,7 @@ def read_csv_data(fpath: Path) -> tuple[list[str], list[dict[str, Any]]]:
     with open(fpath, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         if "address" not in reader.fieldnames:
-            logger.error("No address field found")
+            LOGGER.error("No address field found")
             raise ValueError("No address field in infile")
         data = [row for row in reader]
     return reader.fieldnames, data
@@ -94,13 +102,13 @@ def handle_row(row: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def main() -> None:
-    logger.info("Welcome to geocode!")
+    LOGGER.info("Welcome to geocode!")
     infile = locate_input_file(folder=SHARED_DIR)
-    logger.info(f"Found: {infile} to process...")
+    LOGGER.info(f"Found: {infile} to process...")
 
-    logger.info(f"Working on {infile.name}...")
+    LOGGER.info(f"Working on {infile.name}...")
     columns, data = read_csv_data(fpath=infile)
-    logger.info(f"Read {len(data)} rows from csv")
+    LOGGER.info(f"Read {len(data)} rows from csv")
 
     outfields = list(columns) + NEW_COLS
     outfile = SHARED_DIR / "outfile.csv"
@@ -111,12 +119,15 @@ def main() -> None:
         with ThreadPoolExecutor(max_workers=WORKERS) as pool:
             results = pool.map(handle_row, data)
             for row in results:
-                writer.writerow(row)
-                logger.debug(f"Wrote row: {row}")
+                if row is not None:
+                    writer.writerow(row)
+                    LOGGER.debug(f"Wrote row: {row}")
+                else:
+                    LOGGER.warning("Address had no matches, continuing...")
 
-    logger.info(f"Finished writing to: {outfile.name}")
+    LOGGER.info(f"Finished writing to: {outfile.name}")
 
-    logger.info("Done")
+    LOGGER.info("Done")
 
     return
 
