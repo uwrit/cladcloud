@@ -4,7 +4,7 @@
 FROM postgis/postgis:18-3.6-alpine AS db_creator
 SHELL ["/bin/bash", "-c"]
 
-# copy statics
+# copy into autorun after builtin 10_postgis.sh and before 900-exit_before_boot.sh
 COPY --chmod=0755 --chown=postgres:postgres load_data.sh /docker-entrypoint-initdb.d/11-load_data.sh
 
 # build vars
@@ -56,7 +56,7 @@ RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
 RUN chown 5001 /opt/palantir/sidecars/shared-volumes/shared/
 ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 
-COPY --chmod=0755 process_csv.py /
+COPY --chmod=0755 geocode.py /geocode
 COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
 
 # copy database from db_creator
@@ -67,4 +67,4 @@ RUN echo "$state_var" > /pgdata/states
 
 WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
 USER 5001
-ENTRYPOINT ["entrypoint", "-c", "/process_csv.py"]
+ENTRYPOINT ["entrypoint", "-c", "/geocode"]

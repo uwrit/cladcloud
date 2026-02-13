@@ -51,7 +51,7 @@ LABEL "org.degauss.argument"="${degauss_argument}"
 # copy statics
 RUN mkdir /app
 WORKDIR /app
-COPY --chmod=755 entrypoint.R .
+COPY --chmod=755 geocode.R /geocode
 COPY geocode.rb .
 COPY --from=compiler /app/Geocoder-US-2.0.4.gem Geocoder-US-2.0.4.gem
 ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /opt/geocoder.db
@@ -60,8 +60,7 @@ ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /opt/geocoder.db
 RUN apk --no-cache add py3-pip ruby build-base linux-headers
 RUN gem install Geocoder-US-2.0.4.gem
 RUN apk --no-cache upgrade
-RUN R --quiet -e "install.packages(c('digest','docopt','jsonlite','knitr','mappp','remotes'), repos=c(CRAN='https://packagemanager.posit.co/cran/latest'))"
-RUN R --quiet -e "remotes::install_github('degauss-org/dht')"
+RUN installr -d degauss-org/dht digest docopt jsonlite knitr mappp
 
 # Foundry customizations
 COPY --chmod=0755 entrypoint.py /usr/bin/entrypoint
@@ -72,4 +71,4 @@ RUN chown -R 5001:5001 /app /opt /tmp
 USER 5001
 ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 WORKDIR /opt/palantir/sidecars/shared-volumes/shared/
-ENTRYPOINT ["entrypoint", "-c", "/app/entrypoint.R /opt/palantir/sidecars/shared-volumes/shared/infile.csv all"]
+ENTRYPOINT ["entrypoint", "-c", "/geocode /opt/palantir/sidecars/shared-volumes/shared/infile.csv"]

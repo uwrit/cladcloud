@@ -1,4 +1,4 @@
-# uwpostgis-foundry
+# postgis
 This is a single purpose container for supporting just the geocoding functions of postgis with the slimmest possible approach. Tabblock TIGER file import not needed.
 
 This is customized to work as a sidecar within the context of the Palantir foundry cloud environment
@@ -9,7 +9,6 @@ This is customized to work as a sidecar within the context of the Palantir found
 You pass the geocode() function a string and you get back a set of columns.
 
 ```sql
-
     SELECT
                       g.rating
                     , ST_AsText(ST_SnapToGrid(g.geomout,0.00001)) As wktlonlat
@@ -20,14 +19,11 @@ You pass the geocode() function a string and you get back a set of columns.
                     , (addy).stateabbrev As st
                     , (addy).zip
                     FROM geocode('Address string goes here') As g;
-
-
 ```
 
 An adjustment to return json would looke like this
 
 ```
-
 select row_to_json(geo) geocoded
 from (
     SELECT
@@ -40,7 +36,6 @@ from (
                     , (addy).stateabbrev As st
                     , (addy).zip
                     FROM geocode('Address string goes here') as g) geo;
-
 ```
 
 For what's possible here see:
@@ -53,7 +48,7 @@ For what's possible here see:
 ### Foundry Implementation Notes
 10/3 Next Steps:
 
-  - [x] add python and standard Foundry entrypoint.py approach into Dockerfile - DONE 10/4
+  - [x] add python and standard Foundry geocode.py approach into Dockerfile - DONE 10/4
   - [x] add process_csv.py for actually running the postgres query against the CSV and saving the results - DONE 10/4
 
   - [x] checkin to main

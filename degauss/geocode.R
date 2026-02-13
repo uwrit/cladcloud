@@ -11,7 +11,7 @@ doc <- "
       entrypoint.R <filename> [<score_threshold>]
       "
 opt <- docopt::docopt(doc)
-if (is.null(opt$score_threshold)) opt$score_threshold <- 0.5
+if (is.null(opt$score_threshold)) opt$score_threshold <- "all"
 
 d <- readr::read_csv(opt$filename, show_col_types = FALSE)
 # d <- readr::read_csv('test/my_address_file.csv')
@@ -72,7 +72,7 @@ if (nrow(d_for_geocoding) > 0) {
                                            cache = TRUE,
                                            cache_name = "geocoding_cache"
   )
-  
+
   ## extract results, if a tie then take first returned result
   d_for_geocoding <- d_for_geocoding %>%
     dplyr::mutate(
@@ -97,8 +97,8 @@ if (nrow(d_for_geocoding) > 0) {
                                      ordered = TRUE
     )) %>%
     dplyr::arrange(desc(precision), score)
-  } else if (nrow(d_for_geocoding) == 0 & opt$score_threshold != "all") { 
-    # if no geocodes are returned and not returning all geocodes, 
+  } else if (nrow(d_for_geocoding) == 0 & opt$score_threshold != "all") {
+    # if no geocodes are returned and not returning all geocodes,
     # then bind non-geocoded with out template
   d_excluded_for_address <-
     bind_rows(d_excluded_for_address, out_template) %>%
@@ -157,7 +157,7 @@ if (opt$score_threshold != "all") {
       `%` = round(n / sum(n) * 100, 1),
       `n (%)` = glue::glue("{n} ({`%`})")
     )
-  
+
   n_geocoded <- geocode_summary$n[geocode_summary$geocode_result == "geocoded"]
   n_total <- sum(geocode_summary$n)
   pct_geocoded <- geocode_summary$`%`[geocode_summary$geocode_result == "geocoded"]
