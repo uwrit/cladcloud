@@ -85,11 +85,10 @@ def read_csv_data(fpath: Path) -> tuple[list[str], list[dict[str, Any]]]:
     return reader.fieldnames, data
 
 
-def handle_row(row: dict[str, Any]) -> dict[str, Any]:
+def handle_row(row: dict[str, Any]) -> dict[str, Any] | None:
     result = geocode(address=row["address"])
     if result is None:
-        logger.warning("Address had no matches, continuing...")
-        return
+        return None
     merged = row | result
     return merged
 
