@@ -35,8 +35,7 @@ logging.basicConfig(
 
 
 def load_source_df() -> pl.DataFrame:
-    # url = "https://raw.githubusercontent.com/brian-cy-chang/UW_Geospatial/refs/heads/main/output/OMOP_sample.csv"
-    url = Path().cwd() / "data" / "full_addresses.csv"
+    url = "https://raw.githubusercontent.com/brian-cy-chang/UW_Geospatial/refs/heads/main/output/OMOP_sample.csv"
     df = (
         pl.read_csv(url)
         .select(
@@ -84,6 +83,19 @@ def load_data() -> dict[str, pl.DataFrame]:
     return state_map
 
 
+def setup_container_folder(fpath: Path) -> None:
+    fpath.mkdir(exist_ok=True)
+    shutil.copy(
+        Path().cwd() / "flag_file",
+        fpath / "start_flag",
+    )
+    shutil.copy(
+        Path().cwd() / "flag_file",
+        fpath / "close_flag",
+    )
+    return
+
+
 def build_degauss(name: str) -> float:
     start = time.time()
     result = subprocess.run(
@@ -99,7 +111,7 @@ def build_degauss(name: str) -> float:
             # this is the context/folder to build in which is set below with cwd
             ".",
         ],
-        cwd="degauss-foundry",
+        cwd="degauss",
         check=True,
     )
     end = time.time()
@@ -129,7 +141,7 @@ def build_postgis(name: str, state: str) -> float:
             # this is the context/folder to build in which is set below with cwd
             ".",
         ],
-        cwd="uwpostgis-foundry",
+        cwd="uwpostgis",
         check=True,
     )
     logging.info(f"POSTGIS CMD={' '.join(result.args)}")
@@ -221,7 +233,7 @@ def run_postgis(
     return duration
 
 
-def trivy_check(image_name: str) -> tuple[bool, float]:
+def trivy_check(image_name: str, fail: bool = False) -> tuple[bool, float]:
     start = time.time()
     result = subprocess.run(
         [
@@ -231,13 +243,14 @@ def trivy_check(image_name: str) -> tuple[bool, float]:
             "--exit-code=1",
             image_name,
         ],
+        check=fail,
     )
     end = time.time()
     duration = end - start
     return result.returncode == 0, duration
 
 
-def docker_scout_check(image_name: str) -> tuple[bool, float]:
+def docker_scout_check(image_name: str, fail: bool = False) -> tuple[bool, float]:
     start = time.time()
     result = subprocess.run(
         [
@@ -248,6 +261,7 @@ def docker_scout_check(image_name: str) -> tuple[bool, float]:
             "--exit-code",
             image_name,
         ],
+        check=fail,
     )
     end = time.time()
     duration = end - start
@@ -271,6 +285,7 @@ def docker_scout_recs(image_name: str) -> tuple[bool, float]:
 
 def analyze_measurements(fpath: Path) -> pl.DataFrame:
     df = pl.read_ndjson(fpath)
+    df.write_csv(Path().cwd() / "data" / "measurements.csv")
     # drop state
     rdf = df.group_by("container").agg(
         [
@@ -286,7 +301,7 @@ def analyze_outputs(source_df: pl.DataFrame) -> pl.DataFrame:
     results: list[dict[str, int | float | str]] = []
     none_skips = 0
     for p in paths:
-        path_parts = p.name.split("-")
+        path_parts = p.stem.split("-")
         container = path_parts[0]
         state = path_parts[-1]
         data = (
@@ -316,11 +331,16 @@ def analyze_outputs(source_df: pl.DataFrame) -> pl.DataFrame:
 
     logging.info(f"Skipped {none_skips} `None`-like types")
     df = pl.DataFrame(results)
+    df.write_csv(Path().cwd() / "data" / "outputs.csv")
     rdf = df.group_by(["container", "state"]).agg(
         [pl.col("distance").mean().alias("avg_dist_meters")]
     )
-    print(df.group_by(["container"]).agg([pl.col("distance").mean().alias("avg_dist_meters")]))
-    rdf.write_csv(Path().cwd() / "data" / "outputs" / "_distance_metrics.csv")
+    print(
+        df.group_by(["container"]).agg(
+            [pl.col("distance").mean().alias("avg_dist_meters")]
+        )
+    )
+    rdf.write_csv(Path().cwd() / "data" / "outputs" / "distance_metrics.csv")
     return rdf
 
 
@@ -334,22 +354,28 @@ def main() -> None:
     with open(output_path, "w") as f:
         f.truncate()
 
+    (Path().cwd() / "data" / "container-data").mkdir(exist_ok=True)
+    (Path().cwd() / "data" / "outputs").mkdir(exist_ok=True)
+
     logging.info("Building degauss ONCE...")
     degauss_name = "degauss-global"
     degauss_build_time = build_degauss(name=degauss_name)
 
     logging.info("Checking degauss...")
     trivy_status, trivy_time = trivy_check(image_name=degauss_name)
+    logging.info(f"Trivy status: {trivy_status} | Trivy time: {trivy_time}")
     docker_scout_status, docker_scout_time = docker_scout_check(image_name=degauss_name)
+    logging.info(
+        f"Docker Scout status: {docker_scout_status} | Docker Scout time: {docker_scout_time}"
+    )
     docker_scout_rec_status, docker_scout_rec_time = docker_scout_recs(
         image_name=degauss_name
     )
+    logging.info(
+        f"Docker Scout (REC) status: {docker_scout_rec_status} | Docker Scout (REC) time: {docker_scout_rec_time}"
+    )
 
-    i = 0
     for state, df in tqdm(state_map.items(), desc="States...", leave=False):
-        i += 1
-        if i > 3:
-            break
         logging.info(f"====={state}=====")
         print(f"====={state}=====")
 
@@ -358,6 +384,8 @@ def main() -> None:
         relative_path = state_fpath.relative_to(Path().cwd())
         logging.info(f"Dumping state datafile to: {relative_path}")
         df.write_csv(state_fpath)
+
+        setup_container_folder(fpath=Path().cwd() / "data" / "container-data")
 
         # copy file to expected name
         shutil.copy2(state_fpath, state_fpath.parent / "container-data" / "infile.csv")
@@ -381,11 +409,18 @@ def main() -> None:
 
         logging.info("Checking postgis...")
         trivy_status, trivy_time = trivy_check(image_name=postgis_name)
+        logging.info(f"Trivy status: {trivy_status} | Trivy time: {trivy_time}")
         docker_scout_status, docker_scout_time = docker_scout_check(
             image_name=postgis_name
         )
+        logging.info(
+            f"Docker Scout status: {docker_scout_status} | Docker Scout time: {docker_scout_time}"
+        )
         docker_scout_rec_status, docker_scout_rec_time = docker_scout_recs(
             image_name=postgis_name
+        )
+        logging.info(
+            f"Docker Scout (REC) status: {docker_scout_rec_status} | Docker Scout (REC) time: {docker_scout_rec_time}"
         )
 
         postgis_run_time = run_postgis(image_name=postgis_name, state=state)
@@ -405,9 +440,8 @@ def main() -> None:
         logging.info(f"Removing state datafile from: {relative_path}")
         state_fpath.unlink()
 
-        # clean dir data files (this is the remaining `infile.csv`)
-        for f in (Path().cwd() / "data" / "container-data").glob("*.csv"):
-            f.unlink()
+        # cleanup
+        shutil.rmtree(Path().cwd() / "data" / "container-data")
 
     logging.info("Starting cleanup...")
 
