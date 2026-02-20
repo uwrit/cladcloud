@@ -6,7 +6,7 @@
 [[ -z ${POSTGRES_DB} ]] && POSTGRES_DB="geocoder"
 [[ -z ${POSTGRES_PASSWORD} ]] && POSTGRES_PASSWORD="not_on_gitlab"
 [[ -z ${POSTGRES_USER} ]] && POSTGRES_USER="postgres"
-[[ -z ${STATES} ]] && STATES="AL,AK,AZ,AR,CA,CO,CT,DE,FL,GA,HI,ID,IL,IN,IA,KS,KY,LA,ME,MD,MA,MI,MN,MS,MO,MT,NE,NV,NH,NJ,NM,NY,NC,ND,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VT,VA,WA,WV,WI,WY"
+[[ -z ${STATES} ]] && STATES="AK,AL,AR,AS,AZ,CA,CO,CT,DC,DE,FL,FM,GA,GU,HI,IA,ID,IL,IN,KS,KY,LA,MA,MD,ME,MH,MI,MN,MO,MS,MT,NC,ND,NE,NH,NJ,NM,NV,NY,OH,OK,OR,PA,PR,PW,RI,SC,SD,TN,TX,UT,VA,VI,VT,WA,WI,WV,WY"
 [[ -z ${YEAR} ]] && YEAR="2020"
 
 while getopts "d:s:t:y:?" arg; do
@@ -35,7 +35,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
 CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
 CREATE EXTENSION IF NOT EXISTS address_standardizer;
-UPDATE tiger.loader_lookuptables SET load = true WHERE load = false AND lookup_name IN('tract', 'bg', 'tabblock20');
+UPDATE tiger.loader_lookuptables SET load = false WHERE lookup_name IN ('bg', 'sldl', 'sldu', 'tabblock', 'tract', 'vtd');
 "
 
 fix_and_run() {
