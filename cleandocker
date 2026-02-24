@@ -1,0 +1,10 @@
+#!/bin/bash
+docker system prune -af --volumes
+docker volume prune -af
+service docker stop
+service containerd stop
+rm -rf /home/containerd/*
+service containerd start
+service docker start
+docker system prune -af --volumes
+docker volume prune -af
