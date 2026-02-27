@@ -379,6 +379,9 @@ def main() -> None:
         logging.info(f"Building {postgis_name} image...")
         duration = build_postgis(name=postgis_name, state=lower_state)
 
+        logging.info("Running postgis...")
+        postgis_run_time = run_postgis(image_name=postgis_name, state=state)
+
         logging.info("Checking postgis...")
         trivy_status, trivy_time = trivy_check(image_name=postgis_name)
         docker_scout_status, docker_scout_time = docker_scout_check(
@@ -387,8 +390,6 @@ def main() -> None:
         docker_scout_rec_status, docker_scout_rec_time = docker_scout_recs(
             image_name=postgis_name
         )
-
-        postgis_run_time = run_postgis(image_name=postgis_name, state=state)
 
         m = Measurement(
             state=state,
