@@ -9,7 +9,7 @@ COPY --chmod=0755 --chown=postgres:postgres load_data.sh /docker-entrypoint-init
 
 # build vars
 ARG TIGER_DOMAIN
-ARG YEAR=2024
+ARG YEAR
 
 # runtime vars
 ENV DOMAIN=${TIGER_DOMAIN}

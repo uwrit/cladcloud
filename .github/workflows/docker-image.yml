@@ -17,7 +17,8 @@ concurrency:
 env:
   # dynamic doesn't work here, only static data
   REPOSITORY:
-  DOMAIN: clad-github-builder.rit.uw.edu
+  TIGER_DOMAIN: clad-github-builder.rit.uw.edu
+  YEAR: 2024
 
 jobs:
 
@@ -82,7 +83,7 @@ jobs:
     - name: print env
       run: env | sort
     - name: Build the postgis image
-      run: docker build --output type=image,compression=zstd,compression-level=9,oci-mediatypes=true --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg DOMAIN=clad-github-builder.rit.uw.edu --build-arg state_var=${{ matrix.value }} uwpostgis --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
+      run: docker build --output type=image,compression=zstd,compression-level=9,oci-mediatypes=true --shm-size 4g --load --cpu-quota $(( $(nproc --all)*100000 )) --build-arg TIGER_DOMAIN=${{ env.TIGER_DOMAIN }} --build-arg YEAR=${{ env.YEAR }} --build-arg state_var=${{ matrix.value }} uwpostgis --platform linux/amd64 --tag genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
     - name: test container
       run: cp test/* /dev/shm/ && docker run --rm -v "/dev/shm":/opt/palantir/sidecars/shared-volumes/shared --entrypoint /geocode genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }} /opt/palantir/sidecars/shared-volumes/shared/infile.csv
     - name: Run Trivy CVE vulnerability scanner
