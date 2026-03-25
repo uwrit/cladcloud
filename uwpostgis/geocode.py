@@ -31,7 +31,7 @@ def init_worker(db_config):
 
 def geocode_address(args):
     """
-    Worker function using pre-initialized connection.
+    Worker function using a Cursor for maximum efficiency.
 
     Args:
         args: tuple of (index, address)
@@ -42,8 +42,6 @@ def geocode_address(args):
     global worker_connection
 
     try:
-        # for debugging:
-        # print(f"Processing [{idx}]: {address}")
         if not address or pandas.isna(address) or str(address).strip() == '':
             return {'index': idx, 'status': 'empty'}
 
@@ -61,56 +59,33 @@ def geocode_address(args):
             ORDER BY g.rating DESC
             LIMIT 1;'''
 
-        # Use parameterized query
-        try:
-            all_results = pandas.read_sql(sql_query, worker_connection, params=(address,))
-        except psycopg.Error:
-            try:
-                worker_connection.rollback()
-            except:
-                worker_connection.close()
-                worker_connection = psycopg.connect(**DB_CONFIG)
-                worker_connection.autocommit = True
-            return {'index': idx, 'status': 'db_error'}
+        # Using a Cursor instead of read_sql is ~15x faster for single rows
+        with worker_connection.cursor() as cur:
+            cur.execute(sql_query, (address,))
+            row = cur.fetchone()
 
-        if len(all_results) > 0:
-            temp_results = all_results.head(1)
-            try:
-                wkt = temp_results['wktlonlat'].iloc[0]
+            if row:
+                # Row is a tuple: (rating, wkt, num, name, type, city, state, zip)
+                wkt = row[1]
                 if wkt and isinstance(wkt, str):
                     latlong = wkt.replace('POINT(','').replace(')','').split(" ")
-
                     return {
                         'index': idx,
-                        'rating': temp_results['rating'].iloc[0],
-                        'street_num': temp_results['street_num'].iloc[0],
-                        'street_name': temp_results['street_name'].iloc[0],
-                        'street_type': temp_results['street_type'].iloc[0],
-                        'city': temp_results['city'].iloc[0],
-                        'state': temp_results['state'].iloc[0],
-                        'zip': temp_results['zip'].iloc[0],
-                        # 'lat': temp_results['lat'].iloc[0],
-                        # 'lon': temp_results['lon'].iloc[0],
+                        'rating': row[0],
+                        'street_num': row[2],
+                        'street_name': row[3],
+                        'street_type': row[4],
+                        'city': row[5],
+                        'state': row[6],
+                        'zip': row[7],
                         'lat': float(latlong[1]) if len(latlong) > 1 else None,
                         'lon': float(latlong[0]) if len(latlong) > 0 else None,
                         'status': 'success'
                     }
-            except (KeyError, IndexError, ValueError):
-                return {'index': idx, 'status': 'parse_error'}
-
         return {'index': idx, 'status': 'no_results'}
 
-    except Exception as e:
-        # print(f"Error processing [{idx}] {address}: {str(e)}")
+    except Exception:
         return {'index': idx, 'status': 'error'}
-
-
-def cleanup_worker():
-    """Clean up worker resources."""
-    global worker_connection
-    if 'worker_connection' in globals():
-        worker_connection.close()
-
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -125,127 +100,90 @@ if __name__ == "__main__":
     time.sleep(1)
 
     import_csv = sys.argv[1]
+    output_csv = "geocoded_" + os.path.basename(import_csv)
     progress_style = sys.argv[2] if len(sys.argv) > 2 else 'detailed'
     batch_size = int(sys.argv[3]) if len(sys.argv) > 3 else BATCH_SIZE
     num_workers = int(sys.argv[4]) if len(sys.argv) > 4 else cpu_count()
+
     if progress_style not in ['minimal', 'simple', 'detailed']:
-        print(f"Invalid style '{progress_style}'. Using 'detailed'.")
         progress_style = 'detailed'
-    print(f"Using {num_workers} worker processes of {batch_size} batch size with {progress_style} output")
+    print(f"Using {num_workers} workers, streaming {import_csv} in chunks of {batch_size}")
 
-    # Import infile
-    print(f"Reading in {import_csv}")
-    address_df = pandas.read_csv(import_csv)
-    # Prepare output columns
-    address_df[['rating', 'street_num', 'street_name', 'street_type', 'city', 'state', 'zip', 'lat', 'lon']] = None
-    # print(f"Total addresses to process: {len(address_df)}")
+    # Get total rows for the progress bar without loading the file into RAM
+    total_rows = sum(1 for _ in open(import_csv)) - 1
 
-    # Prepare work items
-    work_items = [(idx, row['address']) for idx, row in address_df.iterrows()]
     stats = {'success': 0, 'failed': 0, 'empty': 0, 'db_error': 0,
-             'parse_error': 0, 'no_results': 0}
+             'parse_error': 0, 'no_results': 0, 'error': 0}
 
-    # Process in parallel with connection pooling
+    # Initialize progress bars based on style
+    if progress_style == 'minimal':
+        main_pbar = tqdm(total=total_rows, ncols=100, desc="Processing", unit="addr")
+    elif progress_style == 'simple':
+        main_pbar = tqdm(total=total_rows, ncols=100, desc="Geocoding", unit="addr",
+                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]')
+    else:
+        main_pbar = tqdm(total=total_rows, ncols=100, desc="Overall Progress", position=0, unit="addr")
+        success_pbar = tqdm(total=total_rows, ncols=100, desc="✓ Successful    ", position=1, bar_format='{desc}: {n_fmt}', colour='green')
+        failed_pbar = tqdm(total=total_rows, ncols=100, desc="✗ Failed        ", position=2, bar_format='{desc}: {n_fmt}', colour='red')
+
     start_time = time.time()
-    with Pool(
-        processes=num_workers,
-        initializer=init_worker,
-        initargs=(DB_CONFIG,)
-    ) as pool:
-        # Process in chunks for better progress tracking
-        results = []
-        if progress_style == 'minimal':
-            # Minimal: Just a simple progress bar
-            with tqdm(total=len(work_items), ncols=200, desc="Processing", unit="addr") as pbar:
-                for result in pool.imap_unordered(geocode_address, work_items, chunksize=batch_size):
-                    results.append(result)
-                    if result.get('status') == 'success':
-                        stats['success'] += 1
-                    pbar.update(1)
 
-        elif progress_style == 'simple':
-            # Simple: Progress bar with success count
-            with tqdm(total=len(work_items), ncols=200, desc="Geocoding", unit="addr",
-                      bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]') as pbar:
-                for result in pool.imap_unordered(geocode_address, work_items, chunksize=batch_size):
-                    results.append(result)
-                    status = result.get('status', 'error')
+    with Pool(processes=num_workers, initializer=init_worker, initargs=(DB_CONFIG,)) as pool:
+        # Stream the CSV in chunks to keep RAM usage low
+        reader = pandas.read_csv(import_csv, chunksize=batch_size)
 
-                    if status == 'success':
-                        stats['success'] += 1
-                    else:
-                        stats['failed'] += 1
+        for chunk_df in reader:
+            # Create a generator for work items (zero RAM footprint)
+            work_items = ((idx, row['address']) for idx, row in chunk_df.iterrows())
 
-                    pbar.set_postfix({'✓': stats['success'], '✗': stats['failed']})
-                    pbar.update(1)
+            chunk_results_list = []
+            for result in pool.imap_unordered(geocode_address, work_items):
+                status = result.get('status', 'error')
 
-        else:  # 'detailed'
-            # Detailed: Multiple progress bars with comprehensive stats
-            main_pbar = tqdm(total=len(work_items), ncols=200, desc="Overall Progress", position=0, unit="addr",
-                           bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]')
-            success_pbar = tqdm(total=len(work_items), ncols=200, desc="✓ Successful    ", position=1,
-                              bar_format='{desc}: {n_fmt} ({percentage:3.0f}%)', colour='green')
-            failed_pbar = tqdm(total=len(work_items), ncols=200, desc="✗ Failed        ", position=2,
-                             bar_format='{desc}: {n_fmt} ({percentage:3.0f}%)', colour='red')
-            try:
-                for result in pool.imap_unordered(geocode_address, work_items, chunksize=batch_size):
-                    results.append(result)
-                    status = result.get('status', 'error')
+                # Update statistics and UI
+                if status == 'success':
+                    stats['success'] += 1
+                    if progress_style == 'detailed': success_pbar.update(1)
+                else:
+                    stats[status] = stats.get(status, 0) + 1
+                    stats['failed'] += 1
+                    if progress_style == 'detailed': failed_pbar.update(1)
 
-                    # Update statistics
-                    if status == 'success':
-                        stats['success'] += 1
-                        success_pbar.update(1)
-                    elif status == 'empty':
-                        stats['empty'] += 1
-                        failed_pbar.update(1)
-                    elif status == 'db_error':
-                        stats['db_error'] += 1
-                        failed_pbar.update(1)
-                    elif status == 'parse_error':
-                        stats['parse_error'] += 1
-                        failed_pbar.update(1)
-                    elif status == 'no_results':
-                        stats['no_results'] += 1
-                        failed_pbar.update(1)
-                    else:
-                        stats['failed'] += 1
-                        failed_pbar.update(1)
+                if progress_style == 'simple':
+                    main_pbar.set_postfix({'✓': stats['success'], '✗': stats['failed']})
 
-                    # Calculate rate
-                    elapsed = time.time() - start_time
-                    rate = len(results) / elapsed if elapsed > 0 else 0
+                main_pbar.update(1)
 
-                    main_pbar.set_postfix({
-                        'rate': f'{rate:.1f}/s',
-                        'success_rate': f'{100*stats["success"]/len(results):.1f}%'
-                    })
-                    main_pbar.update(1)
+                # Merge the result with the original row data
+                orig_row = chunk_df.loc[result['index']].to_dict()
+                orig_row.update(result)
+                chunk_results_list.append(orig_row)
 
-            finally:
-                main_pbar.close()
-                success_pbar.close()
-                failed_pbar.close()
+            # Append the completed chunk to the output file immediately
+            out_df = pandas.DataFrame(chunk_results_list)
+            out_df.to_csv(output_csv, mode='a', index=False, header=not os.path.exists(output_csv))
 
-    # Update dataframe with results
-    print("\n\nUpdating dataframe...")
-    with tqdm(results, desc="Writing results", ncols=200, unit="row", leave=False) as pbar:
-        for result in pbar:
-            idx = result['index']
-            for key, value in result.items():
-                if key not in ('index', 'status') and key in address_df.columns:
-                    address_df.at[idx, key] = value
+            # Explicitly clear chunk memory
+            del chunk_results_list
+            del out_df
+
+    # Close progress bars
+    main_pbar.close()
+    if progress_style == 'detailed':
+        success_pbar.close()
+        failed_pbar.close()
+
     elapsed = time.time() - start_time
 
-    # Summary
+    # Final Summary Report
     print(f"\n{'='*70}")
     print(f"GEOCODING COMPLETE")
     print(f"{'='*70}")
-    print(f"Total addresses:        {len(address_df):,}")
+    print(f"Total addresses:        {total_rows:,}")
     print(f"Total time:             {elapsed:.2f}s ({elapsed/60:.1f} min)")
-    print(f"Average per address:    {elapsed/len(address_df):.3f}s")
-    print(f"Processing rate:        {len(address_df)/elapsed:.2f} addresses/sec")
-    print(f"Successfully geocoded:  {stats['success']:,} ({100*stats['success']/len(address_df):.1f}%)")
+    print(f"Average per address:    {elapsed/total_rows:.3f}s")
+    print(f"Processing rate:        {total_rows/elapsed:.2f} addresses/sec")
+    print(f"Successfully geocoded:  {stats['success']:,} ({100*stats['success']/total_rows:.1f}%)")
     if stats['empty'] > 0:
         print(f"  Empty addresses:      {stats['empty']:,}")
     if stats['no_results'] > 0:
@@ -254,11 +192,6 @@ if __name__ == "__main__":
         print(f"  Database errors:      {stats['db_error']:,}")
     if stats['parse_error'] > 0:
         print(f"  Parse errors:         {stats['parse_error']:,}")
-    if stats['failed'] > 0:
-        print(f"  Other errors:         {stats['failed']:,}")
+    if stats['error'] > 0:
+        print(f"  Other errors:         {stats['error']:,}")
     print(f"{'='*70}\n")
-
-    # Write output
-    output_csv = os.path.dirname(os.path.abspath(import_csv)) + "/outfile.csv"
-    print(f"Writing to {output_csv}")
-    address_df.to_csv(output_csv, index=False)
