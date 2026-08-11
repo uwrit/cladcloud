@@ -51,6 +51,20 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg
 RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
 RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
 
+# PURGE - Automatically find and delete metadata directories that don't match active versions
+RUN python3 -c '
+import os, sys, pkg_resources
+active = {p.project_name.lower(): p.version for p in pkg_resources.working_set}
+for root in sys.path:
+    if "site-packages" in root and os.path.exists(root):
+        for item in os.listdir(root):
+            if item.endswith((".dist-info", ".egg-info")):
+                name = item.split("-")[0].lower().replace("_", "-")
+                version = item.split("-")[1].replace(".dist", "").replace(".egg", "") if "-" in item else ""
+                if name in active and active[name] != version:
+                    os.system(f"rm -rf {os.path.join(root, item)}")
+'
+
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
 RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
