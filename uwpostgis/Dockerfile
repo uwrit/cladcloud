@@ -52,7 +52,12 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
 RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
 
 # PURGE - Automatically find and delete metadata directories that don't match active versions
-RUN python3 -c 'import os, sys, importlib.metadata; active = {n.lower(): importlib.metadata.version(n) for n in importlib.metadata.distributions()}; [os.system(f"rm -rf {os.path.join(r, i)}") for r in sys.path if "site-packages" in r and os.path.exists(r) for i in os.listdir(r) if i.endswith((".dist-info", ".egg-info")) and "-" in i and (name := i.split("-")[0].lower().replace("_", "-")) in active and active[name] != i.split("-")[1].replace(".dist", "").replace(".egg", "")]'
+RUN for pkg in $(find /usr/lib /usr/local/lib -type d -name "*-*.dist-info" -o -name "*-*.egg-info" 2>/dev/null | awk -F'/' '{print $NF}' | awk -F'-' '{print $1}' | sort -u); do \
+        lines=$(find /usr/lib /usr/local/lib -type d -name "${pkg}-*.dist-info" -o -name "${pkg}-*.egg-info" 2>/dev/null | sort -V); \
+        if [ $(echo "$lines" | wc -l) -gt 1 ]; then \
+            echo "$lines" | head -n -1 | xargs rm -rf; \
+        fi; \
+    done
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
