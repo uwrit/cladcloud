@@ -58,6 +58,7 @@ RUN for pkg in $(find /usr/lib /usr/local/lib -type d -name "*-*.dist-info" -o -
             echo "$lines" | head -n -1 | xargs rm -rf; \
         fi; \
     done
+RUN rm -rf /var/lib/apk /lib/apk /etc/apk /sbin/apk
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
