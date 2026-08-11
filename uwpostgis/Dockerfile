@@ -44,21 +44,14 @@ RUN rm -f /usr/local/bin/gosu
 RUN mkdir -m 700 /pgdata
 ENV PGDATA=/pgdata
 
-ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
+# force all python packages only through pip (apk packages are very slow to fix CVEs)
 RUN apk upgrade --no-cache
-RUN apk add py3-pip
+RUN apk add python3
+ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
+RUN python3 -m ensurepip --default-pip
+RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip setuptools wheel
 RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
-RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
 RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
-
-# PURGE - Automatically find and delete metadata directories that don't match active versions
-RUN for pkg in $(find /usr/lib /usr/local/lib -type d -name "*-*.dist-info" -o -name "*-*.egg-info" 2>/dev/null | awk -F'/' '{print $NF}' | awk -F'-' '{print $1}' | sort -u); do \
-        lines=$(find /usr/lib /usr/local/lib -type d -name "${pkg}-*.dist-info" -o -name "${pkg}-*.egg-info" 2>/dev/null | sort -V); \
-        if [ $(echo "$lines" | wc -l) -gt 1 ]; then \
-            echo "$lines" | head -n -1 | xargs rm -rf; \
-        fi; \
-    done
-RUN rm -rf /var/lib/apk /lib/apk /etc/apk /sbin/apk
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
