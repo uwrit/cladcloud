@@ -44,11 +44,12 @@ RUN rm -f /usr/local/bin/gosu
 RUN mkdir -m 700 /pgdata
 ENV PGDATA=/pgdata
 
+ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
 RUN apk upgrade --no-cache
 RUN apk add py3-pip
 RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
 RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
-RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --upgrade
+RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
