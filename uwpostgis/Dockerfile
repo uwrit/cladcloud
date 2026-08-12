@@ -23,6 +23,13 @@ RUN echo "docker_temp_server_stop && exit 0" > /docker-entrypoint-initdb.d/900-e
 RUN apk add libintl wget
 RUN echo "check_certificate = off" >> /etc/wgetrc
 
+# python packages to copy over (install directly leaves residual CVEs in system packages
+ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
+RUN apk add py3-pip
+RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
+RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
+RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
+
 # state data second
 # ARG forces build to not use cache from a previous state(s) build:
 ARG state_var
@@ -47,11 +54,7 @@ ENV PGDATA=/pgdata
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
 RUN apk upgrade --no-cache
 RUN apk add python3
-ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
-RUN wget -qO- https://bootstrap.pypa.io/get-pip.py | python3 - --no-cache-dir
-RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip setuptools wheel
-RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
-RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
+COPY --from=db_creator /usr/local/lib/python*/site-packages /usr/lib/python*/site-packages
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
