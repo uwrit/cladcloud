@@ -48,7 +48,7 @@ ENV PGDATA=/pgdata
 RUN apk upgrade --no-cache
 RUN apk add python3
 ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
-RUN python3 -m ensurepip --default-pip
+RUN wget -qO- https://bootstrap.pypa.io/get-pip.py | python3 - --no-cache-dir
 RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip setuptools wheel
 RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
 RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
