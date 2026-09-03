@@ -52,11 +52,11 @@ RUN mkdir -m 700 /pgdata
 ENV PGDATA=/pgdata
 
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
+ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
 RUN apk update && apk upgrade --no-cache
-RUN apk add python3
+RUN apk add py3-pip
 COPY --from=db_creator /usr/lib/python*/site-packages /tmp/site-packages
 RUN cp -r /tmp/site-packages/* "$(python3 -c 'import site; print(site.getsitepackages()[0])')" && rm -rf /tmp/site-packages
-RUN apk add py3-pip
 RUN python3 -m pip install --break-system-packages --no-cache-dir --force-reinstall --upgrade setuptools>=84.0.0 msgpack>=1.2.2
 RUN apk del py3-pip
 
