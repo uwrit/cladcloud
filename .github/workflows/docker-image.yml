@@ -50,7 +50,7 @@ jobs:
       uses: aquasecurity/trivy-action@0.35.0
       with:
         image-ref: genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
-        trivy-version: v0.74.0
+        version: v0.74.0
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
@@ -91,7 +91,7 @@ jobs:
       uses: aquasecurity/trivy-action@0.35.0
       with:
         image-ref: genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
-        trivy-version: v0.74.0
+        version: v0.74.0
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
