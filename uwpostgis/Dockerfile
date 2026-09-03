@@ -25,6 +25,7 @@ RUN echo "check_certificate = off" >> /etc/wgetrc
 
 # python packages to copy over (install directly leaves residual CVEs in system packages
 ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
+RUN apk update && apk upgrade --no-cache
 RUN apk add py3-pip
 RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
 RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
@@ -52,7 +53,7 @@ RUN mkdir -m 700 /pgdata
 ENV PGDATA=/pgdata
 
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
-RUN apk upgrade --no-cache
+RUN apk update && apk upgrade --no-cache
 RUN apk add py3-pip
 COPY --from=db_creator /usr/lib/python*/site-packages /usr/lib/python*/site-packages
 
