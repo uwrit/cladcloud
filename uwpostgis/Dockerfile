@@ -54,7 +54,7 @@ ENV PGDATA=/pgdata
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
 RUN apk upgrade --no-cache
 RUN apk add python3
-COPY --from=db_creator /usr/local/lib/python*/site-packages /usr/lib/python*/site-packages
+COPY --from=db_creator /usr/lib/python*/site-packages /usr/lib/python*/site-packages
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
