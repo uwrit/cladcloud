@@ -58,6 +58,14 @@ COPY --from=db_creator /usr/lib/python*/site-packages /tmp/site-packages
 RUN cp -r /tmp/site-packages/* "$(python3 -c 'import site; print(site.getsitepackages()[0])')" && rm -rf /tmp/site-packages
 RUN python3 -m pip install --break-system-packages --no-cache-dir --force-reinstall --upgrade setuptools>=84.0.0 msgpack>=1.2.2
 
+# TESTING - START
+RUN echo "=== VERSION CHECK ===" \
+    && python3 -m pip show setuptools msgpack \
+    && find / -iname "setuptools*.dist-info" 2>/dev/null \
+    && find / -iname "msgpack*.dist-info" 2>/dev/null \
+    && echo "=== END VERSION CHECK ==="
+# TESTING - END
+
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
 RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
