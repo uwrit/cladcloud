@@ -25,11 +25,10 @@ RUN echo "check_certificate = off" >> /etc/wgetrc
 
 # python packages to copy over (install directly leaves residual CVEs in system packages
 ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
-RUN apk update && apk upgrade --no-cache
-RUN apk add py3-pip
+RUN apk update && apk upgrade --no-cache && apk add py3-pip
+COPY requirements.txt .
 RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
-RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
-RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
+RUN python3 -m pip install --break-system-packages --no-cache-dir -r requirements.txt
 
 # state data second
 # ARG forces build to not use cache from a previous state(s) build:
