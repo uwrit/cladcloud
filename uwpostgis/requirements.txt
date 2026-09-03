@@ -1,5 +1,5 @@
 pandas
 psycopg
 tqdm
-setuptools>=84.0.0
-msgpack>=1.2.2
+setuptools==84.0.0
+msgpack==1.2.2
