@@ -56,6 +56,7 @@ ENV PGDATA=/pgdata
 
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
 RUN apk update && apk upgrade --no-cache && apk add python3
+RUN rm -rf /usr/lib/python*/site-packages/setuptools* /usr/lib/python*/site-packages/msgpack*
 COPY --from=db_creator /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
