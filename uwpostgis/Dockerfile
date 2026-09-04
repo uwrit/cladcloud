@@ -30,8 +30,8 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
+RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
 RUN python3 -m pip install --break-system-packages --no-cache-dir -r requirements.txt
-RUN python3 -m pip freeze > requirements.txt
 
 # state data second
 # ARG forces build to not use cache from a previous state(s) build:
