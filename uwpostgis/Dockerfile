@@ -55,7 +55,8 @@ ENV PGDATA=/pgdata
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
 RUN apk update && apk upgrade --no-cache && apk add python3
 COPY --from=db_creator /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
