@@ -56,6 +56,7 @@ ENV PGDATA=/pgdata
 RUN apk update && apk upgrade --no-cache 
 COPY --from=db_creator /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+RUN ln -s /opt/venv/bin/python3 /usr/bin/python3
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
