@@ -28,8 +28,8 @@ RUN apk update && apk upgrade --no-cache && apk add py3-pip
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade pip
+RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade setuptools msgpack
 RUN /opt/venv/bin/python -m pip install --no-cache-dir pandas psycopg tqdm
-RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade "setuptools==84.0.0" "msgpack==1.2.2" && /opt/venv/bin/python -m pip check
 
 # state data second
 # ARG forces build to not use cache from a previous state(s) build:
@@ -53,10 +53,9 @@ RUN mkdir -m 700 /pgdata
 ENV PGDATA=/pgdata
 
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
-RUN apk update && apk upgrade --no-cache && apk add python3
+RUN apk update && apk upgrade --no-cache 
 COPY --from=db_creator /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade "setuptools==84.0.0" "msgpack==1.2.2" && /opt/venv/bin/python -m pip check
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
