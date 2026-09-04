@@ -25,7 +25,7 @@ RUN echo "check_certificate = off" >> /etc/wgetrc
 
 # python packages to copy over (install directly leaves residual CVEs in system packages
 RUN apk update && apk upgrade --no-cache && apk add py3-pip
-RUN python3 -m venv /opt/venv
+RUN python3 -m venv --copies /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade pip
 RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade setuptools msgpack
@@ -56,7 +56,6 @@ ENV PGDATA=/pgdata
 RUN apk update && apk upgrade --no-cache 
 COPY --from=db_creator /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN ln -s /opt/venv/bin/python3 /usr/bin/python3
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
