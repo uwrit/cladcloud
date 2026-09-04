@@ -24,12 +24,12 @@ RUN apk add libintl wget
 RUN echo "check_certificate = off" >> /etc/wgetrc
 
 # python packages to copy over (install directly leaves residual CVEs in system packages
-ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
 RUN apk update && apk upgrade --no-cache && apk add py3-pip
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
-RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
+RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade pip
+RUN /opt/venv/bin/python -m pip install --no-cache-dir pandas psycopg tqdm
+RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade "setuptools==84.0.0" "msgpack==1.2.2" && /opt/venv/bin/python -m pip check
 
 # state data second
 # ARG forces build to not use cache from a previous state(s) build:
@@ -56,6 +56,7 @@ ENV PGDATA=/pgdata
 RUN apk update && apk upgrade --no-cache && apk add python3
 COPY --from=db_creator /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade "setuptools==84.0.0" "msgpack==1.2.2" && /opt/venv/bin/python -m pip check
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
