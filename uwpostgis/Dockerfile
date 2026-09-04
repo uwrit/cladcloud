@@ -26,9 +26,12 @@ RUN echo "check_certificate = off" >> /etc/wgetrc
 # python packages to copy over (install directly leaves residual CVEs in system packages
 ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
 RUN apk update && apk upgrade --no-cache && apk add py3-pip
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
 RUN python3 -m pip install --break-system-packages --no-cache-dir -r requirements.txt
+RUN python3 -m pip freeze > requirements.txt
 
 # state data second
 # ARG forces build to not use cache from a previous state(s) build:
@@ -54,9 +57,8 @@ ENV PGDATA=/pgdata
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
 ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
 RUN apk update && apk upgrade --no-cache && apk add py3-pip
-COPY --from=db_creator /usr/lib/python*/site-packages /tmp/site-packages
-RUN cp -r /tmp/site-packages/* "$(python3 -c 'import site; print(site.getsitepackages()[0])')" && rm -rf /tmp/site-packages
-RUN python3 -m pip install --break-system-packages --no-cache-dir --force-reinstall --upgrade setuptools==84.0.0 msgpack==1.2.2
+COPY --from=db_creator /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
