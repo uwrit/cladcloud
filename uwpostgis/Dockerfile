@@ -28,10 +28,8 @@ ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
 RUN apk update && apk upgrade --no-cache && apk add py3-pip
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-COPY requirements.txt .
 RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade pip
 RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
-RUN python3 -m pip install --break-system-packages --no-cache-dir -r requirements.txt
 
 # state data second
 # ARG forces build to not use cache from a previous state(s) build:
@@ -56,7 +54,6 @@ ENV PGDATA=/pgdata
 
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
 RUN apk update && apk upgrade --no-cache && apk add python3
-RUN rm -rf /usr/lib/python*/site-packages/setuptools* /usr/lib/python*/site-packages/msgpack*
 COPY --from=db_creator /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
