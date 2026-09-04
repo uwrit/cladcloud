@@ -55,10 +55,11 @@ RUN mkdir -m 700 /pgdata
 ENV PGDATA=/pgdata
 
 # force all python packages only through pip (apk packages are very slow to fix CVEs)
-ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
-RUN apk update && apk upgrade --no-cache && apk add py3-pip
+# ENV PIP_OVERRIDE_EXTERNALLY_MANAGED=1
+# RUN apk update && apk upgrade --no-cache && apk add py3-pip
 COPY --from=db_creator /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+# RUN rm -rf /usr/lib/python*/site-packages/setuptools* /usr/lib/python*/site-packages/msgpack*
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
