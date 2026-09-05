@@ -28,7 +28,6 @@ RUN apk update && apk upgrade --no-cache && apk add py3-pip
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade pip
-RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade setuptools msgpack
 RUN /opt/venv/bin/python -m pip install --no-cache-dir pandas psycopg tqdm
 
 # state data second
