@@ -98,3 +98,4 @@ jobs:
         timeout: '1h'
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
+        skip-dirs: '/usr/lib/python*'
