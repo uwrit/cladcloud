@@ -59,7 +59,7 @@ ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /opt/geocoder.db
 # install entrypoint.R dependencies
 RUN apk --no-cache add py3-pip ruby build-base linux-headers
 RUN gem install Geocoder-US-2.0.4.gem
-RUN apk --no-cache upgrade
+RUN apk update && apk --no-cache upgrade
 RUN installr -d degauss-org/dht digest docopt jsonlite knitr mappp
 
 # Foundry customizations
