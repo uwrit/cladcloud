@@ -47,9 +47,10 @@ jobs:
     - name: test container
       run: cp test/* /dev/shm/ && docker run --rm -v "/dev/shm":/opt/palantir/sidecars/shared-volumes/shared --entrypoint /geocode genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }} /opt/palantir/sidecars/shared-volumes/shared/infile.csv all
     - name: Run Trivy CVE vulnerability scanner
-      uses: aquasecurity/trivy-action@0.35.0
+      uses: aquasecurity/trivy-action@v0.36.0
       with:
         image-ref: genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
+        version: v0.74.0
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
@@ -87,9 +88,10 @@ jobs:
     - name: test container
       run: cp test/* /dev/shm/ && docker run --rm -v "/dev/shm":/opt/palantir/sidecars/shared-volumes/shared --entrypoint /geocode genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }} /opt/palantir/sidecars/shared-volumes/shared/infile.csv
     - name: Run Trivy CVE vulnerability scanner
-      uses: aquasecurity/trivy-action@0.35.0
+      uses: aquasecurity/trivy-action@v0.36.0
       with:
         image-ref: genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
+        version: v0.74.0
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
