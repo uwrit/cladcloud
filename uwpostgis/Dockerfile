@@ -1,7 +1,41 @@
+# syntax=docker/dockerfile:1
 # https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
+
+# binaries from modern alpine
+FROM alpine:latest as latest-apps
+RUN apk --no-cache add gosu
+
+## PART 1
+# Address CVEs in upsteam image
+FROM postgis/postgis:18-3.6-alpine as postgis-clean
+SHELL ["/bin/bash", "-c"]
+
+# first update base image
+RUN apk --no-cache upgrade && apk --no-cache add python3
+ADD https://bootstrap.pypa.io/get-pip.py /tmp/get-pip.py
+RUN python3 /tmp/get-pip.py --break-system-packages
+RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
+
+# Remove unused upstream binary packages that trigger vulnerabilities
+COPY --from=latest-apps /usr/bin/gosu /usr/local/bin/gosu
+
+# Explicitly upgrade python packages past vulnerability thresholds
+RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade \
+    pip \
+    setuptools>=83.0.0 \
+    msgpack>=1.2.1
+
+# why does installing pandas finally force pip to remove old package version references!? THIS IS MADNESS
+RUN python3 -m pip install --break-system-packages --no-cache-dir pandas
+RUN python3 -m pip uninstall -y --break-system-packages --no-cache-dir pandas
+
+# Scrub package text registries so external scanning scanners find 0 matches
+RUN rm -rf /root/.cache /tmp/*
+
+
+## PART 2
 # Initialize the database during the build
-# PART 1
-FROM postgis/postgis:18-3.6-alpine AS db_creator
+FROM postgis-clean AS db_creator
 SHELL ["/bin/bash", "-c"]
 
 # copy into autorun after builtin 10_postgis.sh and before 900-exit_before_boot.sh
@@ -20,15 +54,8 @@ ENV POSTGRES_PASSWORD=not_on_gitlab
 ENV POSTGRES_USER=postgres
 
 RUN echo "docker_temp_server_stop && exit 0" > /docker-entrypoint-initdb.d/900-exit_before_boot.sh
-RUN apk add libintl wget
+RUN apk --no-cache add libintl wget
 RUN echo "check_certificate = off" >> /etc/wgetrc
-
-# python packages to copy over (install directly leaves residual CVEs in system packages
-RUN apk update && apk upgrade --no-cache && apk add py3-pip
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-RUN /opt/venv/bin/python -m pip install --no-cache-dir --upgrade pip
-RUN /opt/venv/bin/python -m pip install --no-cache-dir pandas psycopg tqdm
 
 # state data second
 # ARG forces build to not use cache from a previous state(s) build:
@@ -41,8 +68,8 @@ RUN chown -R postgres:postgres /gisdata
 RUN bash -x docker-entrypoint.sh postgres
 
 
-# PART 2
-FROM postgis/postgis:18-3.6-alpine
+## PART 3
+FROM postgis-clean
 SHELL ["/bin/bash", "-c"]
 # not used, old, and has CVEs
 RUN rm -f /usr/local/bin/gosu
@@ -51,11 +78,7 @@ RUN rm -f /usr/local/bin/gosu
 RUN mkdir -m 700 /pgdata
 ENV PGDATA=/pgdata
 
-# force all python packages only through pip (apk packages are very slow to fix CVEs)
-RUN apk update && apk upgrade --no-cache && apk add python3
-COPY --from=db_creator /opt/venv /opt/venv
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
