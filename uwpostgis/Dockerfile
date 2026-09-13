@@ -10,27 +10,29 @@ SHELL ["/bin/bash", "-c"]
 RUN apk --no-cache upgrade && apk --no-cache add su-exec python3
 ADD https://bootstrap.pypa.io/get-pip.py /tmp/get-pip.py
 RUN python3 /tmp/get-pip.py --break-system-packages
-RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
+# Create a permanent executable wrapper for pip
+RUN echo -e '#!/bin/bash\nexec python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed "$@"' > /usr/local/bin/pipi && \
+    chmod +x /usr/local/bin/pipi
+RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs pipi --upgrade
 
 # Remove unused upstream binary packages that trigger vulnerabilities
-RUN ln -s /sbin/su-exec /usr/local/bin/gosu
+RUN ln -fs /sbin/su-exec /usr/local/bin/gosu
 
 # Explicitly upgrade python packages past vulnerability thresholds
-RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade \
+RUN pipi --upgrade \
     pip \
     setuptools>=83.0.0 \
     msgpack>=1.2.1
 
 # why does installing pandas finally force pip to remove old package version references!? THIS IS MADNESS
-RUN python3 -m pip install --break-system-packages --no-cache-dir pandas
+RUN pipi pandas
 RUN python3 -m pip uninstall -y --break-system-packages --no-cache-dir pandas
 
 # Scrub package text registries so external scanning scanners find 0 matches
 RUN rm -rf /root/.cache /tmp/*
 
-FROM scratch as postgis-clean
-
 # Copy 100% of the modified, upgraded filesystem from Stage 1
+FROM scratch as postgis-clean
 COPY --from=postgis-dirty / /
 
 # !! IMPORTANT: Must restate the original environment/runtime metadata because 'FROM scratch' strips them away
@@ -82,14 +84,12 @@ RUN bash -x docker-entrypoint.sh postgres
 ## PART 3
 FROM postgis-clean
 SHELL ["/bin/bash", "-c"]
-# not used, old, and has CVEs
-RUN rm -f /usr/local/bin/gosu
 
 # copy statics
 RUN mkdir -m 700 /pgdata
 ENV PGDATA=/pgdata
 
-RUN python3 -m pip install --break-system-packages --no-cache-dir pandas psycopg tqdm
+RUN pipi pandas psycopg tqdm
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
