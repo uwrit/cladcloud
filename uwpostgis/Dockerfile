@@ -1,23 +1,19 @@
 # syntax=docker/dockerfile:1
 # https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
 
-# binaries from modern alpine
-FROM alpine:latest as latest-apps
-RUN apk --no-cache add gosu
-
 ## PART 1
 # Address CVEs in upsteam image
-FROM postgis/postgis:18-3.6-alpine as postgis-clean
+FROM postgis/postgis:18-3.6-alpine as postgis-dirty
 SHELL ["/bin/bash", "-c"]
 
 # first update base image
-RUN apk --no-cache upgrade && apk --no-cache add python3
+RUN apk --no-cache upgrade && apk --no-cache add su-exec python3
 ADD https://bootstrap.pypa.io/get-pip.py /tmp/get-pip.py
 RUN python3 /tmp/get-pip.py --break-system-packages
 RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed --upgrade
 
 # Remove unused upstream binary packages that trigger vulnerabilities
-COPY --from=latest-apps /usr/bin/gosu /usr/local/bin/gosu
+RUN ln -s /sbin/su-exec /usr/local/bin/gosu
 
 # Explicitly upgrade python packages past vulnerability thresholds
 RUN python3 -m pip install --break-system-packages --no-cache-dir --upgrade \
@@ -31,6 +27,21 @@ RUN python3 -m pip uninstall -y --break-system-packages --no-cache-dir pandas
 
 # Scrub package text registries so external scanning scanners find 0 matches
 RUN rm -rf /root/.cache /tmp/*
+
+FROM scratch as postgis-clean
+
+# Copy 100% of the modified, upgraded filesystem from Stage 1
+COPY --from=postgis-dirty / /
+
+# !! IMPORTANT: Must restate the original environment/runtime metadata because 'FROM scratch' strips them away
+ENV LANG=en_US.utf8 \
+    PG_MAJOR=18 \
+    PGDATA=/var/lib/postgresql/data
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+STOPSIGNAL SIGINT
+EXPOSE 5432
+CMD ["postgres"]
 
 
 ## PART 2
