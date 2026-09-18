@@ -1,4 +1,4 @@
-# PART 1 - https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
+## PART 1 - https://stackoverflow.com/questions/34751814/build-postgres-docker-container-with-initial-schema
 # compile the gem for the build
 FROM rocker/r-ver AS compile-gem
 
@@ -35,8 +35,8 @@ RUN gem update && \
 RUN make -f Makefile.ruby install
 
 
-# PART 2
-# ADD build from initialization layer
+## PART 2
+# build from an initial layer
 FROM rhub/r-minimal as r-dirty
 
 # copy statics
@@ -127,7 +127,7 @@ RUN rm -rf /var/cache/apk/* \
     /root/.cargo
 
 
-# PART 3 - The Ultimate Clean Runtime Stage
+## PART 3 - The Ultimate Clean Runtime Stage
 # --squash is deprecated, --output squash=true is broken, COPY --from=dirty / / copies all layer junk (deleted files) as well, tar export/import doubles output container size, so copy main folders individually from previous step to get JUST the files and NOTHING from the deleted layers
 FROM scratch as degauss
 
@@ -135,6 +135,7 @@ COPY --from=r-dirty /app /app
 COPY --from=r-dirty /bin /bin
 COPY --from=r-dirty /etc /etc
 COPY --from=r-dirty /lib /lib
+# COPY --from=r-dirty /sbin /sbin # not needed for runtime, only troubleshooting
 COPY --from=r-dirty /usr /usr
 RUN mkdir -m 777 /tmp
 
