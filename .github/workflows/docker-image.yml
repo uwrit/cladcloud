@@ -45,7 +45,7 @@ jobs:
     - name: Build the degauss image
       run: docker build --output type=image,compression=zstd,compression-level=9,oci-mediatypes=true,sbom=false --cpu-quota $(( $(nproc --all)*100000 )) --platform linux/amd64 degauss --tag genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
     - name: test container
-      run: cp test/* /dev/shm/ && docker run --rm -v "/dev/shm":/opt/palantir/sidecars/shared-volumes/shared --entrypoint /geocode genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }} /opt/palantir/sidecars/shared-volumes/shared/infile.csv all
+      run: cp test/* /dev/shm/ && docker run --rm -v "/dev/shm":/opt/palantir/sidecars/shared-volumes/shared --entrypoint /app/geocode genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }} /opt/palantir/sidecars/shared-volumes/shared/infile.csv all
     - name: Run Trivy CVE vulnerability scanner
       uses: aquasecurity/trivy-action@v0.36.0
       with:
