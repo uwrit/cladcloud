@@ -37,8 +37,6 @@ RUN bash -x docker-entrypoint.sh postgres
 # Address CVEs in upsteam image
 FROM postgis/postgis:18-3.6-alpine as postgis-dirty
 
-# first update base image
-# RUN apk --no-cache del $(apk info | grep -E '^go(-|$)|golang')
 # upgrade apk first
 RUN apk --no-cache add --upgrade apk-tools
 # then upgrade the system
@@ -116,9 +114,11 @@ FROM scratch as postgis
 COPY --from=postgis-dirty /bin /bin
 COPY --from=postgis-dirty /etc /etc
 COPY --from=postgis-dirty /lib /lib
-COPY --from=postgis-dirty /sbin /sbin
+# sbin not needed for runtime, only troubleshooting
+# COPY --from=postgis-dirty /sbin /sbin
 COPY --from=postgis-dirty /usr /usr
 RUN mkdir -m 777 /app
+RUN mkdir -m 777 /home
 RUN mkdir -m 777 /tmp
 RUN mkdir -m 777 -p /var/run/postgresql
 ENV PGDATA=/pgdata

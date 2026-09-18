@@ -135,8 +135,10 @@ COPY --from=r-dirty /app /app
 COPY --from=r-dirty /bin /bin
 COPY --from=r-dirty /etc /etc
 COPY --from=r-dirty /lib /lib
-# COPY --from=r-dirty /sbin /sbin # not needed for runtime, only troubleshooting
+# sbin not needed for runtime, only troubleshooting
+# COPY --from=r-dirty /sbin /sbin
 COPY --from=r-dirty /usr /usr
+RUN mkdir -m 777 /home
 RUN mkdir -m 777 /tmp
 
 # DeGAUSS container metadata
