@@ -65,12 +65,19 @@ jobs:
         GRYPE_DB_CACHE_DIR: /dev/shm/
       with:
         image: genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
+        grype-version: v0.119.0
         cache-db: true
         only-fixed: true
+        fail-build: true
         output-format: json
-    - name: Dump Full Grype JSON Results to Action Viewer
-      if: always()
-      run: cat ${{ steps.grype-scan.outputs.json }}
+    - name: Dump Grype Results
+      if: failure() && steps.grype-scan.outcome == 'failure'
+      run: |
+        cat ${{ steps.grype-scan.outputs.json }} | \
+        jq -r '["NAME", "INSTALLED", "VULNERABILITY", "SEVERITY", "FIXED IN"], 
+               ((.matches[]?, .ignoredMatches[]?) | 
+               [.artifact.name, .artifact.version, .vulnerability.id, .vulnerability.severity, (.vulnerability.fix.versions | join(", ") // "None")]) | @tsv' | \
+        column -t -s $'\t'
 
   setup-postgis-states:
     runs-on: self-hosted
@@ -124,9 +131,16 @@ jobs:
         GRYPE_DB_AUTO_UPDATE: false
       with:
         image: genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
+        grype-version: v0.119.0
         cache-db: true
         only-fixed: true
+        fail-build: true
         output-format: json
-    - name: Dump Full Grype JSON Results to Action Viewer
-      if: always()
-      run: cat ${{ steps.grype-scan.outputs.json }}
+    - name: Dump Grype Results
+      if: failure() && steps.grype-scan.outcome == 'failure'
+      run: |
+        cat ${{ steps.grype-scan.outputs.json }} | \
+        jq -r '["NAME", "INSTALLED", "VULNERABILITY", "SEVERITY", "FIXED IN"], 
+               ((.matches[]?, .ignoredMatches[]?) | 
+               [.artifact.name, .artifact.version, .vulnerability.id, .vulnerability.severity, (.vulnerability.fix.versions | join(", ") // "None")]) | @tsv' | \
+        column -t -s $'\t'
