@@ -59,14 +59,18 @@ jobs:
         severity: 'CRITICAL,HIGH,MEDIUM'
     - name: Run Grype CVE vulnerability scanner
       uses: anchore/scan-action@v7
+      id: grype-scan
+      if: always()
       env:
         GRYPE_DB_CACHE_DIR: /dev/shm/
       with:
         image: genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
-        if: always()
-        fail-build: true
-        output-format: template
-        template-path: .github/grype-table.tmpl
+        cache-db: true
+        only-fixed: true
+        output-format: json
+    - name: Dump Full Grype JSON Results to Action Viewer
+      if: always()
+      run: cat ${{ steps.grype-scan.outputs.json }}
 
   setup-postgis-states:
     runs-on: self-hosted
@@ -113,12 +117,16 @@ jobs:
         severity: 'CRITICAL,HIGH,MEDIUM'
     - name: Run Grype CVE vulnerability scanner
       uses: anchore/scan-action@v7
+      id: grype-scan
+      if: always()
       env:
         GRYPE_DB_CACHE_DIR: /dev/shm/
         GRYPE_DB_AUTO_UPDATE: false
       with:
         image: genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
-        if: always()
-        fail-build: true
-        output-format: template
-        template-path: .github/grype-table.tmpl
+        cache-db: true
+        only-fixed: true
+        output-format: json
+    - name: Dump Full Grype JSON Results to Action Viewer
+      if: always()
+      run: cat ${{ steps.grype-scan.outputs.json }}
