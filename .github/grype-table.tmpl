@@ -1,0 +1,4 @@
+{{- printf "%-20s %-12s %-16s %-10s %-12s\n" "NAME" "INSTALLED" "VULNERABILITY" "SEVERITY" "FIXED IN" -}}
+{{- range .Matches -}}
+{{- printf "%-20s %-12s %-16s %-10s %-12s\n" .Artifact.Name .Artifact.Version .Vulnerability.ID .Vulnerability.Severity (by-id .Vulnerability.ID | fix-version) -}}
+{{- end -}}

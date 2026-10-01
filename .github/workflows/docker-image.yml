@@ -65,7 +65,8 @@ jobs:
         image: genoa-container-registry.washington.palantircloud.com/degauss:${{ env.BUILD_NUM }}
         if: always()
         fail-build: true
-        output-format: table
+        output-format: template
+        template-path: .github/grype-table.tmpl
 
   setup-postgis-states:
     runs-on: self-hosted
@@ -119,4 +120,5 @@ jobs:
         image: genoa-container-registry.washington.palantircloud.com/postgis-${{ matrix.value }}:${{ env.BUILD_NUM }}
         if: always()
         fail-build: true
-        output-format: table
+        output-format: template
+        template-path: .github/grype-table.tmpl
