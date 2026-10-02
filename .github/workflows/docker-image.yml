@@ -71,7 +71,7 @@ jobs:
         fail-build: true
         output-format: json
     - name: Dump Grype Results
-      if: failure() && steps.grype-scan.outcome == 'failure'
+      if: failure()
       run: |
         cat ${{ steps.grype-scan.outputs.json }} | \
         jq -r '["NAME", "INSTALLED", "VULNERABILITY", "SEVERITY", "FIXED IN"], 
@@ -137,7 +137,7 @@ jobs:
         fail-build: true
         output-format: json
     - name: Dump Grype Results
-      if: failure() && steps.grype-scan.outcome == 'failure'
+      if: failure()
       run: |
         cat ${{ steps.grype-scan.outputs.json }} | \
         jq -r '["NAME", "INSTALLED", "VULNERABILITY", "SEVERITY", "FIXED IN"], 
