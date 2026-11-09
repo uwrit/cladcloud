@@ -32,6 +32,7 @@ RUN gem update && \
     rm -f /usr/lib/ruby/gems/3.4.0/specifications/sqlite3-ruby-1.3.3.gemspec
 
 # build gem
+ENV CFLAGS="-Wno-error=implicit-function-declaration"
 RUN make -f Makefile.ruby install
 
 
