@@ -35,7 +35,7 @@ RUN bash -x docker-entrypoint.sh postgres
 
 ## PART 2
 # Address CVEs in upsteam image
-FROM postgis/postgis:18-3.6-alpine as postgis-dirty
+FROM postgis/postgis:18-3.6-alpine AS postgis-dirty
 
 # upgrade apk first
 RUN apk --no-cache add --upgrade apk-tools
@@ -109,7 +109,7 @@ RUN rm -rf /lib/apk/db/scripts.tar \
 
 # PART 3 - The Ultimate Clean Runtime Stage
 # --squash is deprecated, --output squash=true is broken, COPY --from=dirty / / copies all layer junk (deleted files) as well, tar export/import doubles output container size, so copy main folders individually from previous step to get JUST the files and NOTHING from the deleted layers
-FROM scratch as postgis
+FROM scratch AS postgis
 
 COPY --from=postgis-dirty /bin /bin
 COPY --from=postgis-dirty /etc /etc
@@ -126,7 +126,7 @@ COPY --chmod=0755 geocode.py /app/geocode
 
 # Foundry customizations
 RUN adduser --uid 5001 --disabled-password user
-RUN mkdir -p /opt/palantir/sidecars/shared-volumes/shared/
+RUN mkdir -m 777 -p /opt/palantir/sidecars/shared-volumes/shared/
 RUN chown 5001 /opt/palantir/sidecars/shared-volumes/shared/
 ENV SHARED_DIR=/opt/palantir/sidecars/shared-volumes/shared
 

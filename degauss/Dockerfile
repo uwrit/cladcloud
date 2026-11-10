@@ -49,7 +49,7 @@ ADD http://clad-github-builder.rit.uw.edu/geo/geocoder-2021.db /app/geocoder.db
 RUN echo "gem: --no-document" > ~/.gemrc
 
 # first update alpine base version (r-minimal is currently based on old 3.22, 3.24 is current as of 2026-09-17 and alpine has no automatic version upgrade tool)
-RUN ALPINE=$(wget -qO- https://dl-cdn.alpinelinux.org/alpine/ | grep -oE 'v[0-9]+\.[0-9]+' | sort -V | tail -n 1) && \
+RUN ALPINE=$(wget -qO- https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/latest-releases.yaml | grep -oE 'branch: v[0-9]+\.[0-9]+' | head -n 1 | grep -oE 'v[0-9]+\.[0-9]+') && \
     echo "Latest Alpine: ${ALPINE}"  && \
     sed -i "s|v3\.[0-9]*|${ALPINE}|g" /etc/apk/repositories
 # append edge repos for newer packages to address CVEs
