@@ -79,7 +79,7 @@ if (nrow(d_for_geocoding) > 0) {
       row_index = 1:nrow(d_for_geocoding),
       geocodes = purrr::map(geocodes, ~ .x %>%
                               purrr::map(unlist) %>%
-                              as_tibble())
+                              as_tibble(.name_repair = "unique"))
     ) %>%
     tidyr::unnest(cols = c(geocodes)) %>%
     dplyr::group_by(row_index) %>%
