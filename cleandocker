@@ -4,6 +4,10 @@ docker volume prune -af
 service docker stop
 service containerd stop
 rm -rf /home/containerd/*
+rm -rf /home/github/.docker/buildx/refs/default/default/*
+rm -rf /home/tmp/*
+rm -rf /dev/shm/*.csv
+rm -rf /dev/shm/geocoding_cache
 service containerd start
 service docker start
 docker system prune -af --volumes

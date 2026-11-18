@@ -30,6 +30,8 @@ RUN echo "gem: --no-document" > ~/.gemrc
 RUN gem update && \
     gem install sqlite3 json Text && \
     rm -f /usr/lib/ruby/gems/3.4.0/specifications/sqlite3-ruby-1.3.3.gemspec
+# Patch gemspec so Geocoder-US uses the modern 'sqlite3' gem (>= 1.4)
+RUN sed -i -E "s/['\"]sqlite3(-ruby)?['\"].*/'sqlite3', '>= 2.0'/g" /app/gemspec
 
 # build gem
 ENV CFLAGS="-Wno-error=implicit-function-declaration"
@@ -53,15 +55,15 @@ RUN ALPINE=$(wget -qO- https://dl-cdn.alpinelinux.org/alpine/latest-stable/relea
     echo "Latest Alpine: ${ALPINE}"  && \
     sed -i "s|v3\.[0-9]*|${ALPINE}|g" /etc/apk/repositories
 # append edge repos for newer packages to address CVEs
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
-    echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
+RUN echo "@edgemain https://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
+    echo "@edgecomm https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
     echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
 # upgrade apk first
 RUN apk add --no-cache --upgrade apk-tools
 # then upgrade the system
 RUN apk --no-cache upgrade
 # add packages needed for degauss geocoder and palantir (ruby, R, and python)
-RUN apk --no-cache add python3 py3-pip ruby build-base linux-headers dash
+RUN apk --no-cache add build-base linux-headers python3 py3-pip ruby ruby-dev ruby-sqlite3 sqlite-dev
 # pip install shortcut - pipi
 RUN echo -e '#!/bin/bash\nexec python3 -m pip install --break-system-packages --no-cache-dir --ignore-installed "$@"' > /usr/local/bin/pipi && \
     chmod +x /usr/local/bin/pipi
@@ -71,6 +73,8 @@ RUN pipi --upgrade pip
 RUN python3 -m pip freeze --all | sed 's/==/>=/g' | xargs pipi --upgrade
 # install entrypoint.R R dependencies
 RUN installr -d degauss-org/dht digest docopt jsonlite knitr mappp
+# force modern sqlite3
+RUN gem install sqlite3
 
 # finally install needed packages
 COPY --from=compile-gem /app/Geocoder-US-2.0.4.gem /tmp/Geocoder-US-2.0.4.gem
@@ -90,7 +94,9 @@ RUN apk del --no-cache \
     linux-headers \
     make \
     pkgconfig \
-    py3-pip
+    py3-pip \
+    ruby-dev \
+    sqlite-dev
 # remove python vulnerabilies
 RUN rm -f /usr/lib/python*/tarfile.py \
     /usr/lib/python*/poplib.py \
